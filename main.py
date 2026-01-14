@@ -1,5 +1,6 @@
 from core.interfaces.adapter_factory import AdapterFactory
 
+
 def main():
     sport = "baseball"
     league = "MLB"
