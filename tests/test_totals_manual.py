@@ -20,3 +20,5 @@ analysis = {
 
 pick = evaluate_totals_market(analysis)
 print(pick)
+
+

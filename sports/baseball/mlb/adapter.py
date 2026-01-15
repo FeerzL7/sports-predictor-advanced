@@ -1,3 +1,5 @@
+# sports/baseball/mlb/adapter.py
+
 from core.interfaces.sport_adapter import SportAdapter
 
 from sports.baseball.mlb.analysis.pitching import analizar_pitchers
@@ -8,6 +10,7 @@ from sports.baseball.mlb.analysis.h2h import analizar_h2h
 from sports.baseball.mlb.analysis.projections import proyectar_totales
 
 from core.odds.markets.totals import evaluate_totals_market
+
 
 class MLBAdapter(SportAdapter):
 
@@ -28,17 +31,17 @@ class MLBAdapter(SportAdapter):
     def get_events(self, date: str):
         """
         Obtiene eventos base del día.
-        Por ahora reutiliza analizar_pitchers como loader principal.
+        Pitching actúa como loader principal.
         """
         return analizar_pitchers(date)
 
     # =========================
-    # Core Analysis
+    # Analysis Pipeline
     # =========================
     def analyze_event(self, event: dict) -> dict:
         """
-        Ejecuta el pipeline completo de análisis y devuelve
-        un objeto normalizado listo para core / picks.
+        Ejecuta TODO el pipeline de análisis.
+        NO genera picks.
         """
         partidos = [event]
 
@@ -48,28 +51,30 @@ class MLBAdapter(SportAdapter):
         partidos = analizar_h2h(partidos)
         partidos = proyectar_totales(partidos)
 
-        p = partidos[0]
-
-        return self._normalize_analysis(p)
+        return self._normalize_analysis(partidos[0])
 
     # =========================
-    # Picks (placeholder)
+    # Picks
     # =========================
-    def generate_picks(self, analysis):
-        pick = evaluate_totals_market(analysis)
-        return pick
+    def generate_picks(self, analysis: dict):
+        """
+        Evalúa mercados disponibles y devuelve picks.
+        """
+        picks = []
+
+        total_pick = evaluate_totals_market(analysis)
+        if total_pick:
+            picks.append(total_pick)
+
+        return picks
 
     # =========================
     # Normalization
     # =========================
     def _normalize_analysis(self, p: dict) -> dict:
         """
-        Convierte el análisis crudo en una salida estándar.
+        Salida estándar, limpia y agnóstica al core.
         """
-
-        flags = p.get("data_warnings", [])
-
-        projection_conf = p.get("projection_confidence", 0.5)
 
         return {
             "sport": self.sport,
@@ -111,6 +116,6 @@ class MLBAdapter(SportAdapter):
                 "total_runs": p.get("proj_total"),
             },
 
-            "confidence": round(projection_conf, 3),
-            "flags": flags,
+            "confidence": round(p.get("projection_confidence", 0.5), 3),
+            "flags": p.get("data_warnings", []),
         }
