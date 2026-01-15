@@ -41,7 +41,7 @@ END_SEASON_SETTINGS = {
 VOLATILITY_POST_ASG_FACTOR = 1.15
 
 # ==========================
-# Park Factors
+# Park Factors (MLB)
 # ==========================
 PARK_FACTORS = {
     "Coors Field": 1.34,
@@ -88,6 +88,8 @@ WEATHER_CODES = {
 WEATHER_TEMP_NEUTRAL = 22.0
 WEATHER_TEMP_PER_RUN = 0.005
 WEATHER_WIND_PER_RUN = 0.002
+
+# Confidence mínima aceptable cuando hay datos incompletos
 WEATHER_MIN_SAMPLE_CONF = 0.70
 
 # ==========================
@@ -99,7 +101,7 @@ CONTEXT_BASE_CONFIDENCE = 0.70
 CONTEXT_CONF_PENALTIES = {
     "no_weather": 0.90,
     "no_park": 0.95,
-    "no_bullpen": 0.85,
+    # bullpen queda documentado, pero no activo en el modelo actual
 }
 
 # ==========================

@@ -1,7 +1,7 @@
-import requests
 from datetime import datetime, timedelta
-import pytz
 from typing import Dict, Any, List, Set
+import pytz
+import requests
 
 from sports.baseball.mlb.data_sources.schedule_provider import get_schedule_by_date
 from sports.baseball.mlb.constants.mlb_constants import (
@@ -21,16 +21,18 @@ from sports.baseball.mlb.constants.mlb_constants import (
 # =========================
 # WEATHER
 # =========================
+_SESSION = requests.Session()
+
 def obtener_clima(lat: float, lon: float) -> Dict[str, Any]:
     try:
-        resp = requests.get(
+        resp = _SESSION.get(
             "https://api.open-meteo.com/v1/forecast",
             params={
                 "latitude": lat,
                 "longitude": lon,
                 "current_weather": "true"
             },
-            timeout=8
+            timeout=6
         )
         clima = resp.json().get("current_weather", {})
         return {
@@ -49,7 +51,7 @@ def obtener_clima(lat: float, lon: float) -> Dict[str, Any]:
         }
 
 # =========================
-# B2B HELPERS
+# B2B
 # =========================
 def _teams_that_played(games: List[Dict[str, Any]]) -> Set[str]:
     teams = set()
@@ -61,36 +63,31 @@ def _teams_that_played(games: List[Dict[str, Any]]) -> Set[str]:
     return teams
 
 # =========================
-# CONTEXT HELPERS
+# HELPERS
 # =========================
 def estimar_impacto_clima(clima: Dict[str, Any]) -> float:
     temp = clima.get("temperatura", WEATHER_TEMP_NEUTRAL)
-    viento = clima.get("viento_kph", 10.0)
+    wind = clima.get("viento_kph", 10.0)
 
-    impact_temp = (temp - WEATHER_TEMP_NEUTRAL) * WEATHER_TEMP_PER_RUN
-    impact_wind = (viento - 10.0) * WEATHER_WIND_PER_RUN
+    return round(
+        (temp - WEATHER_TEMP_NEUTRAL) * WEATHER_TEMP_PER_RUN +
+        (wind - 10.0) * WEATHER_WIND_PER_RUN,
+        3
+    )
 
-    return round(impact_temp + impact_wind, 3)
-
-def calcular_confidence(
-    has_weather: bool,
-    has_park: bool,
-    has_bullpen: bool
-) -> float:
+def calcular_confidence(has_weather: bool, has_park: bool) -> float:
     conf = CONTEXT_BASE_CONFIDENCE
 
     if not has_weather:
         conf *= CONTEXT_CONF_PENALTIES["no_weather"]
     if not has_park:
         conf *= CONTEXT_CONF_PENALTIES["no_park"]
-    if not has_bullpen:
-        conf *= CONTEXT_CONF_PENALTIES["no_bullpen"]
 
     return round(max(min(conf, 1.0), 0.4), 3)
 
 def _tz_hour(start_time_iso: str, tz: str = "US/Eastern") -> int:
     try:
-        dt = datetime.strptime(start_time_iso, "%Y-%m-%dT%H:%M:%S")
+        dt = datetime.fromisoformat(start_time_iso.replace("Z", ""))
         return (
             dt.replace(tzinfo=pytz.utc)
               .astimezone(pytz.timezone(tz))
@@ -100,18 +97,15 @@ def _tz_hour(start_time_iso: str, tz: str = "US/Eastern") -> int:
         return 19
 
 # =========================
-# CORE BUILDER
+# CORE
 # =========================
 def _build_team_context(
     team: str,
     estadio: str,
     start_time_iso: str,
-    teams_b2b: Set[str]
+    teams_b2b: Set[str],
+    clima: Dict[str, Any]
 ) -> Dict[str, Any]:
-
-    lat, lon = STADIUM_COORDS.get(estadio, DEFAULT_STADIUM_COORD)
-    clima = obtener_clima(lat, lon)
-    hora_local = _tz_hour(start_time_iso)
 
     park_factor = PARK_FACTORS.get(estadio, DEFAULT_PARK_FACTOR)
     pf_ok = estadio in PARK_FACTORS
@@ -119,27 +113,23 @@ def _build_team_context(
     b2b = team in teams_b2b
     penalties = B2B_PENALTY_RUNS if b2b else 0.0
 
-    clima_impact = estimar_impacto_clima(clima)
-
     confidence = calcular_confidence(
         has_weather=clima["condiciones"] != "desconocido",
-        has_park=pf_ok,
-        has_bullpen=False
+        has_park=pf_ok
     )
 
     return {
         "team": team,
         "estadio": estadio,
-        "hora_local": hora_local,
+        "hora_local": _tz_hour(start_time_iso),
         "park_factor": park_factor,
         "b2b": b2b,
         "clima": clima,
-        "impacto_clima_carreras": clima_impact,
+        "impacto_clima_carreras": estimar_impacto_clima(clima),
         "penalizaciones_carreras": round(penalties, 3),
         "confidence": confidence,
         "flags": {
-            "no_bullpen_model": True,
-            "no_weather_dir": True,
+            "no_weather": clima["condiciones"] == "desconocido",
             "no_park_factor": not pf_ok
         }
     }
@@ -148,8 +138,6 @@ def _build_team_context(
 # PUBLIC API
 # =========================
 def analizar_contexto(partidos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    print("[INFO] Analizando contexto (clima, park factor, B2B)...")
-
     if not partidos:
         return partidos
 
@@ -162,34 +150,22 @@ def analizar_contexto(partidos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         datetime.strptime(date, "%Y-%m-%d") - timedelta(days=1)
     ).strftime("%Y-%m-%d")
 
-    games_ayer = get_schedule_by_date(yesterday)
-    teams_b2b = _teams_that_played(games_ayer)
+    teams_b2b = _teams_that_played(
+        get_schedule_by_date(yesterday)
+    )
 
     for p in partidos:
         estadio = p.get("venue", "default")
         start_time = p.get("start_time", f"{date}T19:00:00")
 
-        home = p["home_team"]
-        away = p["away_team"]
+        lat, lon = STADIUM_COORDS.get(estadio, DEFAULT_STADIUM_COORD)
+        clima = obtener_clima(lat, lon)
 
         p["home_context"] = _build_team_context(
-            home, estadio, start_time, teams_b2b
+            p["home_team"], estadio, start_time, teams_b2b, clima
         )
         p["away_context"] = _build_team_context(
-            away, estadio, start_time, teams_b2b
+            p["away_team"], estadio, start_time, teams_b2b, clima
         )
-
-        p.setdefault("data_warnings", [])
-
-        for side, ctx in (
-            ("HOME", p["home_context"]),
-            ("AWAY", p["away_context"])
-        ):
-            if ctx["flags"]["no_bullpen_model"]:
-                p["data_warnings"].append(f"{side}_NO_BULLPEN_MODEL")
-            if ctx["flags"]["no_park_factor"]:
-                p["data_warnings"].append(f"{side}_NO_PARK_FACTOR")
-            if ctx["clima"]["condiciones"] == "desconocido":
-                p["data_warnings"].append(f"{side}_NO_WEATHER")
 
     return partidos
