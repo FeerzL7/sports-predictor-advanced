@@ -1,4 +1,7 @@
 from datetime import datetime
+from datetime import datetime
+
+SEASON = datetime.now().year
 
 # ==========================
 # Odds API (MLB specific)

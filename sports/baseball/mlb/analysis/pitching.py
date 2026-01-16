@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from typing import Dict, Any, List, Optional, Tuple
+from sports.baseball.mlb.data_sources.schedule_provider import get_schedule_by_date
 from sports.baseball.mlb.data_sources.pitching_provider import (
-    get_schedule_by_date,
     lookup_player_id,
     get_pitch_hand,
     get_season_pitching_stats,

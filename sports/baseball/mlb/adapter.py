@@ -10,9 +10,26 @@ from sports.baseball.mlb.analysis.h2h import analizar_h2h
 from sports.baseball.mlb.analysis.projections import proyectar_totales
 
 from core.odds.markets.totals import evaluate_totals_market
+from core.odds.providers.odds_api_provider import OddsAPIProvider
 
 
 class MLBAdapter(SportAdapter):
+    """
+    Adapter MLB v2
+    - Análisis completamente desacoplado
+    - Odds vía provider externo
+    - Picks evaluados por core.odds
+    """
+
+    # =========================
+    # Init
+    # =========================
+    def __init__(self, odds_api_key: str | None = None):
+        self.odds_provider = (
+            OddsAPIProvider(odds_api_key)
+            if odds_api_key
+            else None
+        )
 
     # =========================
     # Metadata
@@ -29,11 +46,12 @@ class MLBAdapter(SportAdapter):
     # Events
     # =========================
     def get_events(self, date: str):
-        """
-        Obtiene eventos base del día.
-        Pitching actúa como loader principal.
-        """
-        return analizar_pitchers(date)
+        events = analizar_pitchers(date)
+
+        if not events:
+            return []
+
+        return events
 
     # =========================
     # Analysis Pipeline
@@ -43,6 +61,7 @@ class MLBAdapter(SportAdapter):
         Ejecuta TODO el pipeline de análisis.
         NO genera picks.
         """
+
         partidos = [event]
 
         partidos = analizar_ofensiva(partidos)
@@ -51,7 +70,19 @@ class MLBAdapter(SportAdapter):
         partidos = analizar_h2h(partidos)
         partidos = proyectar_totales(partidos)
 
-        return self._normalize_analysis(partidos[0])
+        p = partidos[0]
+
+        # =========================
+        # Odds (si provider activo)
+        # =========================
+        if self.odds_provider:
+            market = self.odds_provider.get_totals_market(
+                event_id=p.get("game_id") or p.get("id")
+            )
+            if market:
+                p["market"] = market
+
+        return self._normalize_analysis(p)
 
     # =========================
     # Picks
@@ -116,6 +147,7 @@ class MLBAdapter(SportAdapter):
                 "total_runs": p.get("proj_total"),
             },
 
+            "market": p.get("market"),
             "confidence": round(p.get("projection_confidence", 0.5), 3),
             "flags": p.get("data_warnings", []),
         }
