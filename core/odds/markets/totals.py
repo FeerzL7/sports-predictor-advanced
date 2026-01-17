@@ -34,7 +34,9 @@ def evaluate_totals_market(analysis: Dict[str, Any]) -> Optional[Dict[str, Any]]
     proj_total = analysis.get("proj_total")
     conf = analysis.get("projection_confidence", 0)
 
-    market = analysis.get("market", {}).get("total", {})
+    market_root = analysis.get("market") or {}
+    market = market_root.get("total", {})
+
     line = market.get("line")
     odds_over = market.get("odds_over")
     odds_under = market.get("odds_under")

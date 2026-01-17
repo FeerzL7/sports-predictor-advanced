@@ -88,9 +88,13 @@ class MLBAdapter(SportAdapter):
     # Picks
     # =========================
     def generate_picks(self, analysis: dict):
-        """
-        Evalúa mercados disponibles y devuelve picks.
-        """
+        if not analysis:
+            return []
+
+        market = analysis.get("market")
+        if not isinstance(market, dict):
+            return []
+
         picks = []
 
         total_pick = evaluate_totals_market(analysis)
@@ -106,7 +110,15 @@ class MLBAdapter(SportAdapter):
         """
         Salida estándar, limpia y agnóstica al core.
         """
+        market = p.get("market", {})
 
+        if "total" not in market:
+            market["total"] = {
+                "line": p.get("total_line"),          # puede venir luego de Odds API
+                "odds_over": p.get("odds_over"),
+                "odds_under": p.get("odds_under"),
+            }
+            
         return {
             "sport": self.sport,
             "league": self.league,
@@ -146,6 +158,7 @@ class MLBAdapter(SportAdapter):
                 "away_runs": p.get("proj_away"),
                 "total_runs": p.get("proj_total"),
             },
+            "market": market,
 
             "market": p.get("market"),
             "confidence": round(p.get("projection_confidence", 0.5), 3),
