@@ -6,4 +6,5 @@ adapter = MLBAdapter()
 analysis = adapter.analyze_event(SAMPLE_MLB_EVENT)
 picks = adapter.generate_picks(analysis)
 
-print(picks)
+print("ANALYSIS MARKET:", analysis.get("market"))
+print("PICKS:", picks)

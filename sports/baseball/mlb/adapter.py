@@ -15,10 +15,11 @@ from core.odds.providers.odds_api_provider import OddsAPIProvider
 
 class MLBAdapter(SportAdapter):
     """
-    Adapter MLB v2
-    - Análisis completamente desacoplado
-    - Odds vía provider externo
-    - Picks evaluados por core.odds
+    Adapter MLB v2 – Fase 1
+    - Orquesta análisis MLB
+    - Inyecta odds vía provider externo (opcional)
+    - Devuelve analysis normalizado
+    - El core decide los picks
     """
 
     # =========================
@@ -46,12 +47,11 @@ class MLBAdapter(SportAdapter):
     # Events
     # =========================
     def get_events(self, date: str):
+        """
+        Obtiene eventos base del día (pitchers como punto de entrada).
+        """
         events = analizar_pitchers(date)
-
-        if not events:
-            return []
-
-        return events
+        return events or []
 
     # =========================
     # Analysis Pipeline
@@ -79,7 +79,7 @@ class MLBAdapter(SportAdapter):
             market = self.odds_provider.get_totals_market(
                 event_id=p.get("game_id") or p.get("id")
             )
-            if market:
+            if isinstance(market, dict):
                 p["market"] = market
 
         return self._normalize_analysis(p)
@@ -88,7 +88,10 @@ class MLBAdapter(SportAdapter):
     # Picks
     # =========================
     def generate_picks(self, analysis: dict):
-        if not analysis:
+        """
+        Consume analysis normalizado y devuelve picks.
+        """
+        if not isinstance(analysis, dict):
             return []
 
         market = analysis.get("market")
@@ -108,17 +111,20 @@ class MLBAdapter(SportAdapter):
     # =========================
     def _normalize_analysis(self, p: dict) -> dict:
         """
-        Salida estándar, limpia y agnóstica al core.
+        Salida estándar, estable y agnóstica al core.
+        NUNCA devuelve market = None.
         """
-        market = p.get("market", {})
 
+        market = p.get("market", {}) or {}
+
+        # Fallback de totals si el provider no respondió
         if "total" not in market:
             market["total"] = {
-                "line": p.get("total_line"),          # puede venir luego de Odds API
+                "line": p.get("total_line"),
                 "odds_over": p.get("odds_over"),
                 "odds_under": p.get("odds_under"),
             }
-            
+
         return {
             "sport": self.sport,
             "league": self.league,
@@ -158,9 +164,8 @@ class MLBAdapter(SportAdapter):
                 "away_runs": p.get("proj_away"),
                 "total_runs": p.get("proj_total"),
             },
-            "market": market,
 
-            "market": p.get("market"),
+            "market": market,
             "confidence": round(p.get("projection_confidence", 0.5), 3),
             "flags": p.get("data_warnings", []),
         }
