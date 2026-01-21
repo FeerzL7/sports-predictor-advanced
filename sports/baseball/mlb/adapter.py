@@ -1,6 +1,11 @@
 # sports/baseball/mlb/adapter.py
 
 from core.interfaces.sport_adapter import SportAdapter
+from core.odds.providers.base import OddsProviderBase
+from core.odds.providers.odds_api_provider import OddsAPIProvider
+
+from core.odds.markets.totals import evaluate_totals_market
+from core.odds.markets.moneyline import evaluate_moneyline_market
 
 from sports.baseball.mlb.analysis.pitching import analizar_pitchers
 from sports.baseball.mlb.analysis.offense import analizar_ofensiva
@@ -9,24 +14,24 @@ from sports.baseball.mlb.analysis.context import analizar_contexto
 from sports.baseball.mlb.analysis.h2h import analizar_h2h
 from sports.baseball.mlb.analysis.projections import proyectar_totales
 
-from core.odds.markets.totals import evaluate_totals_market
-from core.odds.providers.odds_api_provider import OddsAPIProvider
-from core.odds.providers.base import OddsProviderBase
-
 
 class MLBAdapter(SportAdapter):
     """
-    Adapter MLB v2 – Fase 1 (cerrada)
+    Adapter MLB
     - Orquesta análisis MLB
-    - Inyecta odds vía OddsProvider (opcional)
+    - Inyecta odds vía OddsProvider (real o fake)
     - Devuelve analysis normalizado
-    - El core decide los picks
+    - El core decide los picks (Totals / Moneyline)
     """
 
     # =========================
     # Init
     # =========================
-    def __init__(self, odds_provider: OddsProviderBase | None = None, odds_api_key: str | None = None):
+    def __init__(
+        self,
+        odds_provider: OddsProviderBase | None = None,
+        odds_api_key: str | None = None
+    ):
         if odds_provider:
             self.odds_provider = odds_provider
         elif odds_api_key:
@@ -49,21 +54,12 @@ class MLBAdapter(SportAdapter):
     # Events
     # =========================
     def get_events(self, date: str):
-        """
-        Obtiene eventos base del día (pitchers como punto de entrada).
-        """
-        events = analizar_pitchers(date)
-        return events or []
+        return analizar_pitchers(date) or []
 
     # =========================
     # Analysis Pipeline
     # =========================
     def analyze_event(self, event: dict) -> dict:
-        """
-        Ejecuta TODO el pipeline de análisis.
-        NO genera picks.
-        """
-
         partidos = [event]
 
         partidos = analizar_ofensiva(partidos)
@@ -72,18 +68,16 @@ class MLBAdapter(SportAdapter):
         partidos = analizar_h2h(partidos)
         partidos = proyectar_totales(partidos)
 
-        p = partidos[0]
-
-        # Normalizamos primero
-        analysis = self._normalize_analysis(p)
+        analysis = self._normalize_analysis(partidos[0])
 
         # =========================
-        # Odds (si provider activo)
+        # Odds (provider)
         # =========================
         if self.odds_provider:
             markets = self.odds_provider.get_markets(analysis)
             if isinstance(markets, dict) and markets:
-                analysis["market"] = markets
+                # merge seguro
+                analysis["market"].update(markets)
 
         return analysis
 
@@ -91,21 +85,20 @@ class MLBAdapter(SportAdapter):
     # Picks
     # =========================
     def generate_picks(self, analysis: dict):
-        """
-        Consume analysis normalizado y devuelve picks.
-        """
         if not isinstance(analysis, dict):
-            return []
-
-        market = analysis.get("market")
-        if not isinstance(market, dict):
             return []
 
         picks = []
 
+        # Totals
         total_pick = evaluate_totals_market(analysis)
         if total_pick:
             picks.append(total_pick)
+
+        # Moneyline
+        ml_pick = evaluate_moneyline_market(analysis)
+        if ml_pick:
+            picks.append(ml_pick)
 
         return picks
 
@@ -114,19 +107,9 @@ class MLBAdapter(SportAdapter):
     # =========================
     def _normalize_analysis(self, p: dict) -> dict:
         """
-        Salida estándar, estable y agnóstica al core.
-        NUNCA devuelve market = None.
+        Salida estándar.
+        market SIEMPRE existe, aunque esté incompleto.
         """
-
-        market = p.get("market") or {}
-
-        # Fallback de totals si no hay provider
-        if "total" not in market:
-            market["total"] = {
-                "line": p.get("total_line"),
-                "odds_over": p.get("odds_over"),
-                "odds_under": p.get("odds_under"),
-            }
 
         return {
             "sport": self.sport,
@@ -168,7 +151,16 @@ class MLBAdapter(SportAdapter):
                 "total_runs": p.get("proj_total"),
             },
 
-            "market": market,
+            # Market base (se completa vía provider)
+            "market": {
+                "total": {
+                    "line": p.get("total_line"),
+                    "odds_over": p.get("odds_over"),
+                    "odds_under": p.get("odds_under"),
+                }
+                # moneyline se inyecta por provider
+            },
+
             "confidence": round(p.get("projection_confidence", 0.5), 3),
             "flags": p.get("data_warnings", []),
         }
