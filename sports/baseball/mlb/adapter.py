@@ -11,13 +11,14 @@ from sports.baseball.mlb.analysis.projections import proyectar_totales
 
 from core.odds.markets.totals import evaluate_totals_market
 from core.odds.providers.odds_api_provider import OddsAPIProvider
+from core.odds.providers.base import OddsProviderBase
 
 
 class MLBAdapter(SportAdapter):
     """
-    Adapter MLB v2 – Fase 1
+    Adapter MLB v2 – Fase 1 (cerrada)
     - Orquesta análisis MLB
-    - Inyecta odds vía provider externo (opcional)
+    - Inyecta odds vía OddsProvider (opcional)
     - Devuelve analysis normalizado
     - El core decide los picks
     """
@@ -25,12 +26,13 @@ class MLBAdapter(SportAdapter):
     # =========================
     # Init
     # =========================
-    def __init__(self, odds_api_key: str | None = None):
-        self.odds_provider = (
-            OddsAPIProvider(odds_api_key)
-            if odds_api_key
-            else None
-        )
+    def __init__(self, odds_provider: OddsProviderBase | None = None, odds_api_key: str | None = None):
+        if odds_provider:
+            self.odds_provider = odds_provider
+        elif odds_api_key:
+            self.odds_provider = OddsAPIProvider(odds_api_key)
+        else:
+            self.odds_provider = None
 
     # =========================
     # Metadata
@@ -72,17 +74,18 @@ class MLBAdapter(SportAdapter):
 
         p = partidos[0]
 
+        # Normalizamos primero
+        analysis = self._normalize_analysis(p)
+
         # =========================
         # Odds (si provider activo)
         # =========================
         if self.odds_provider:
-            market = self.odds_provider.get_totals_market(
-                event_id=p.get("game_id") or p.get("id")
-            )
-            if isinstance(market, dict):
-                p["market"] = market
+            markets = self.odds_provider.get_markets(analysis)
+            if isinstance(markets, dict) and markets:
+                analysis["market"] = markets
 
-        return self._normalize_analysis(p)
+        return analysis
 
     # =========================
     # Picks
@@ -115,9 +118,9 @@ class MLBAdapter(SportAdapter):
         NUNCA devuelve market = None.
         """
 
-        market = p.get("market", {}) or {}
+        market = p.get("market") or {}
 
-        # Fallback de totals si el provider no respondió
+        # Fallback de totals si no hay provider
         if "total" not in market:
             market["total"] = {
                 "line": p.get("total_line"),
