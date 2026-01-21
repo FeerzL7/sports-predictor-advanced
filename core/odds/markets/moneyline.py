@@ -4,35 +4,39 @@ import math
 from typing import Dict, Any, Optional
 
 
-def implied_probability(odds: float) -> float:
+def implied_probability_moneyline(odds: int) -> float:
     """
-    Convierte momio decimal a probabilidad implícita.
+    Convierte momio americano a probabilidad implícita.
     """
-    if odds <= 1:
-        return 0.0
-    return 1 / odds
+    if odds < 0:
+        return abs(odds) / (abs(odds) + 100)
+    else:
+        return 100 / (odds + 100)
 
 
 def logistic_probability(run_diff: float, scale: float = 1.6) -> float:
     """
     Convierte diferencia de carreras proyectadas
-    en probabilidad de victoria usando logística.
+    en probabilidad de victoria usando función logística.
     """
     return 1 / (1 + math.exp(-run_diff / scale))
 
 
 def evaluate_moneyline_market(
     analysis: Dict[str, Any],
-    min_edge: float = 0.03
+    min_edge: float = 0.03,
+    min_confidence: float = 0.55
 ) -> Optional[Dict[str, Any]]:
     """
-    Evalúa mercado Moneyline y devuelve pick si hay valor.
+    Evalúa mercado Moneyline y devuelve pick si hay valor real.
+    Edge = Prob_modelo - Prob_implícita
     """
 
     market = analysis.get("market", {}).get("moneyline")
     projections = analysis.get("projections")
+    system_conf = analysis.get("confidence", 0)
 
-    if not market or not projections:
+    if not market or not projections or system_conf < min_confidence:
         return None
 
     home_runs = projections.get("home_runs")
@@ -42,7 +46,7 @@ def evaluate_moneyline_market(
         return None
 
     # =========================
-    # Probabilidad proyectada
+    # Probabilidad del modelo
     # =========================
     run_diff = home_runs - away_runs
     prob_home = logistic_probability(run_diff)
@@ -51,50 +55,62 @@ def evaluate_moneyline_market(
     # =========================
     # Probabilidad implícita
     # =========================
-    home_odds = market.get("home", {}).get("odds")
-    away_odds = market.get("away", {}).get("odds")
+    home_data = market.get("home")
+    away_data = market.get("away")
 
-    if not home_odds or not away_odds:
+    if not home_data or not away_data:
         return None
 
-    imp_home = implied_probability(home_odds)
-    imp_away = implied_probability(away_odds)
+    home_odds = home_data.get("odds")
+    away_odds = away_data.get("odds")
+
+    if home_odds is None or away_odds is None:
+        return None
+
+    imp_home = implied_probability_moneyline(home_odds)
+    imp_away = implied_probability_moneyline(away_odds)
 
     # =========================
-    # Edge
+    # Edge real
     # =========================
     edge_home = prob_home - imp_home
     edge_away = prob_away - imp_away
 
+    best_pick = None
+    best_edge = min_edge
+
     # =========================
-    # Decisión
+    # HOME
     # =========================
-    if edge_home >= min_edge:
-        return {
+    if edge_home >= best_edge:
+        best_edge = edge_home
+        best_pick = {
             "market": "moneyline",
             "side": "home",
             "team": analysis["teams"]["home"],
             "odds": home_odds,
-            "probability": round(prob_home, 3),
+            "model_prob": round(prob_home, 3),
+            "implied_prob": round(imp_home, 3),
             "edge": round(edge_home, 3),
-            "confidence": round(
-                (analysis.get("confidence", 0.5) + prob_home) / 2, 3
-            ),
-            "reason": "Projected win probability exceeds implied odds"
+            "confidence": round((system_conf + prob_home) / 2, 3),
+            "reason": "Model probability exceeds implied odds"
         }
 
-    if edge_away >= min_edge:
-        return {
+    # =========================
+    # AWAY
+    # =========================
+    if edge_away >= best_edge:
+        best_edge = edge_away
+        best_pick = {
             "market": "moneyline",
             "side": "away",
             "team": analysis["teams"]["away"],
             "odds": away_odds,
-            "probability": round(prob_away, 3),
+            "model_prob": round(prob_away, 3),
+            "implied_prob": round(imp_away, 3),
             "edge": round(edge_away, 3),
-            "confidence": round(
-                (analysis.get("confidence", 0.5) + prob_away) / 2, 3
-            ),
-            "reason": "Projected win probability exceeds implied odds"
+            "confidence": round((system_conf + prob_away) / 2, 3),
+            "reason": "Model probability exceeds implied odds"
         }
 
-    return None
+    return best_pick
