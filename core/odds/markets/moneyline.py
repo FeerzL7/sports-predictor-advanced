@@ -18,10 +18,24 @@ def logistic_probability(run_diff: float, scale: float = 1.6) -> float:
     return 1 / (1 + math.exp(-run_diff / scale))
 
 
+def normalize_edge(model_prob: float, implied_prob: float) -> float:
+    """
+    Edge normalizado:
+    > positivo = valor real
+    > comparable entre favoritos y dogs
+    """
+    if implied_prob <= 0 or implied_prob >= 1:
+        return 0.0
+    return (model_prob - implied_prob) / implied_prob
+
+
 def apply_home_field_adjustment(
     run_diff: float,
+    is_home: bool,
     adjustment: float = 0.18
 ) -> float:
+    if not is_home:
+        return run_diff
     return run_diff + adjustment
 
 
@@ -48,10 +62,6 @@ def bullpen_run_adjustment(
     weight: float = 0.35,
     cap: float = 0.25
 ) -> float:
-    """
-    Convierte diferencia de bullpen en ajuste de carreras.
-    Menor ERA = mejor bullpen.
-    """
     if bullpen_home is None or bullpen_away is None:
         return 0.0
 
@@ -67,7 +77,7 @@ def bullpen_run_adjustment(
 
 def evaluate_moneyline_market(
     analysis: Dict[str, Any],
-    min_edge: float = 0.03,
+    min_edge: float = 0.04,
     min_confidence: float = 0.55
 ) -> Optional[Dict[str, Any]]:
 
@@ -91,38 +101,37 @@ def evaluate_moneyline_market(
     run_diff = home_runs - away_runs
 
     # =========================
-    # Localía
+    # Localía real
     # =========================
-    run_diff += apply_home_field_adjustment(0)
+    context_home = (
+        analysis.get("analysis", {})
+        .get("context", {})
+        .get("home", {})
+    )
+
+    is_home = bool(context_home)
+    run_diff = apply_home_field_adjustment(run_diff, is_home)
 
     # =========================
     # Bullpen adjustment
     # =========================
-    bullpen_home = (
-        analysis.get("analysis", {})
-        .get("pitching", {})
-        .get("home", {})
-        .get("bullpen_era")
-    )
-
-    bullpen_away = (
-        analysis.get("analysis", {})
-        .get("pitching", {})
-        .get("away", {})
-        .get("bullpen_era")
-    )
+    pitching = analysis.get("analysis", {}).get("pitching", {})
+    bullpen_home = pitching.get("home", {}).get("bullpen_era")
+    bullpen_away = pitching.get("away", {}).get("bullpen_era")
 
     run_diff += bullpen_run_adjustment(bullpen_home, bullpen_away)
 
     # =========================
-    # Probabilidades modelo
+    # Modelo base (logístico)
     # =========================
     prob_home = logistic_probability(run_diff)
     prob_away = 1 - prob_home
 
-    # Penalización por data pobre
+    # =========================
+    # Penalización data pobre (una vez)
+    # =========================
     prob_home = apply_low_sample_penalty(prob_home, flags)
-    prob_away = apply_low_sample_penalty(prob_away, flags)
+    prob_away = 1 - prob_home
 
     # =========================
     # Implícitas
@@ -136,8 +145,8 @@ def evaluate_moneyline_market(
     imp_home = implied_probability_moneyline(home_odds)
     imp_away = implied_probability_moneyline(away_odds)
 
-    edge_home = prob_home - imp_home
-    edge_away = prob_away - imp_away
+    edge_home = normalize_edge(prob_home, imp_home)
+    edge_away = normalize_edge(prob_away, imp_away)
 
     best_pick = None
     best_edge = min_edge
@@ -153,7 +162,7 @@ def evaluate_moneyline_market(
             "implied_prob": round(imp_home, 3),
             "edge": round(edge_home, 3),
             "confidence": round((system_conf + prob_home) / 2, 3),
-            "reason": "Edge after home field, bullpen strength and data quality adjustment"
+            "reason": "Normalized edge after home field, bullpen and data quality adjustments"
         }
 
     if edge_away >= best_edge:
@@ -166,7 +175,7 @@ def evaluate_moneyline_market(
             "implied_prob": round(imp_away, 3),
             "edge": round(edge_away, 3),
             "confidence": round((system_conf + prob_away) / 2, 3),
-            "reason": "Edge after bullpen and data quality adjustment"
+            "reason": "Normalized edge after bullpen and data quality adjustments"
         }
 
     return best_pick

@@ -76,7 +76,6 @@ class MLBAdapter(SportAdapter):
         if self.odds_provider:
             markets = self.odds_provider.get_markets(analysis)
             if isinstance(markets, dict) and markets:
-                # merge seguro
                 analysis["market"].update(markets)
 
         return analysis
@@ -108,7 +107,9 @@ class MLBAdapter(SportAdapter):
     def _normalize_analysis(self, p: dict) -> dict:
         """
         Salida estándar.
-        market SIEMPRE existe, aunque esté incompleto.
+        - market SIEMPRE existe
+        - analysis.pitching SIEMPRE existe
+        - context.home / context.away SIEMPRE existen
         """
 
         return {
@@ -127,22 +128,23 @@ class MLBAdapter(SportAdapter):
 
             "analysis": {
                 "pitching": {
-                    "home": p.get("home_stats"),
-                    "away": p.get("away_stats"),
+                    # IMPORTANTE: aquí debe venir bullpen_era si existe
+                    "home": p.get("home_stats") or {},
+                    "away": p.get("away_stats") or {},
                 },
                 "offense": {
-                    "home": p.get("home_offense"),
-                    "away": p.get("away_offense"),
+                    "home": p.get("home_offense") or {},
+                    "away": p.get("away_offense") or {},
                 },
                 "defense": {
-                    "home": p.get("home_defense"),
-                    "away": p.get("away_defense"),
+                    "home": p.get("home_defense") or {},
+                    "away": p.get("away_defense") or {},
                 },
                 "context": {
-                    "home": p.get("home_context"),
-                    "away": p.get("away_context"),
+                    "home": p.get("home_context") or {},
+                    "away": p.get("away_context") or {},
                 },
-                "h2h": p.get("h2h"),
+                "h2h": p.get("h2h") or {},
             },
 
             "projections": {
@@ -151,14 +153,14 @@ class MLBAdapter(SportAdapter):
                 "total_runs": p.get("proj_total"),
             },
 
-            # Market base (se completa vía provider)
+            # Market base
+            # moneyline se inyecta EXCLUSIVAMENTE por provider
             "market": {
                 "total": {
                     "line": p.get("total_line"),
                     "odds_over": p.get("odds_over"),
                     "odds_under": p.get("odds_under"),
                 }
-                # moneyline se inyecta por provider
             },
 
             "confidence": round(p.get("projection_confidence", 0.5), 3),
