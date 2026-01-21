@@ -1,8 +1,11 @@
 # core/odds/markets/moneyline.py
 
-import math
 from typing import Dict, Any, Optional
 
+from core.odds.models.monte_carlo_ml import monte_carlo_moneyline
+from core.odds.models.ml_totals_correlation import (
+    ml_totals_correlation_adjustment
+)
 
 # =========================
 # Helpers
@@ -14,29 +17,15 @@ def implied_probability_moneyline(odds: int) -> float:
     return 100 / (odds + 100)
 
 
-def logistic_probability(run_diff: float, scale: float = 1.6) -> float:
-    return 1 / (1 + math.exp(-run_diff / scale))
-
-
 def normalize_edge(model_prob: float, implied_prob: float) -> float:
     """
     Edge normalizado:
     > positivo = valor real
-    > comparable entre favoritos y dogs
+    > comparable entre favoritos y underdogs
     """
     if implied_prob <= 0 or implied_prob >= 1:
         return 0.0
     return (model_prob - implied_prob) / implied_prob
-
-
-def apply_home_field_adjustment(
-    run_diff: float,
-    is_home: bool,
-    adjustment: float = 0.18
-) -> float:
-    if not is_home:
-        return run_diff
-    return run_diff + adjustment
 
 
 def apply_low_sample_penalty(
@@ -56,21 +45,6 @@ def apply_low_sample_penalty(
     return max(min(adjusted, 0.95), 0.05)
 
 
-def bullpen_run_adjustment(
-    bullpen_home: float,
-    bullpen_away: float,
-    weight: float = 0.35,
-    cap: float = 0.25
-) -> float:
-    if bullpen_home is None or bullpen_away is None:
-        return 0.0
-
-    diff = bullpen_away - bullpen_home
-    adj = diff * weight
-
-    return max(min(adj, cap), -cap)
-
-
 # =========================
 # Main Evaluator
 # =========================
@@ -82,59 +56,31 @@ def evaluate_moneyline_market(
 ) -> Optional[Dict[str, Any]]:
 
     market = analysis.get("market", {}).get("moneyline")
-    projections = analysis.get("projections")
     system_conf = analysis.get("confidence", 0)
     flags = analysis.get("flags", [])
 
-    if not market or not projections or system_conf < min_confidence:
-        return None
-
-    home_runs = projections.get("home_runs")
-    away_runs = projections.get("away_runs")
-
-    if home_runs is None or away_runs is None:
+    if not market or system_conf < min_confidence:
         return None
 
     # =========================
-    # Base run diff
+    # Monte Carlo ML (CORE)
     # =========================
-    run_diff = home_runs - away_runs
+    mc_result = monte_carlo_moneyline(analysis)
+
+    prob_home = mc_result.get("home_win_prob")
+    prob_away = mc_result.get("away_win_prob")
+
+    if prob_home is None or prob_away is None:
+        return None
 
     # =========================
-    # Localía real
-    # =========================
-    context_home = (
-        analysis.get("analysis", {})
-        .get("context", {})
-        .get("home", {})
-    )
-
-    is_home = bool(context_home)
-    run_diff = apply_home_field_adjustment(run_diff, is_home)
-
-    # =========================
-    # Bullpen adjustment
-    # =========================
-    pitching = analysis.get("analysis", {}).get("pitching", {})
-    bullpen_home = pitching.get("home", {}).get("bullpen_era")
-    bullpen_away = pitching.get("away", {}).get("bullpen_era")
-
-    run_diff += bullpen_run_adjustment(bullpen_home, bullpen_away)
-
-    # =========================
-    # Modelo base (logístico)
-    # =========================
-    prob_home = logistic_probability(run_diff)
-    prob_away = 1 - prob_home
-
-    # =========================
-    # Penalización data pobre (una vez)
+    # Penalización por data pobre
     # =========================
     prob_home = apply_low_sample_penalty(prob_home, flags)
     prob_away = 1 - prob_home
 
     # =========================
-    # Implícitas
+    # Odds
     # =========================
     home_odds = market.get("home", {}).get("odds")
     away_odds = market.get("away", {}).get("odds")
@@ -151,6 +97,9 @@ def evaluate_moneyline_market(
     best_pick = None
     best_edge = min_edge
 
+    # =========================
+    # Pick HOME
+    # =========================
     if edge_home >= best_edge:
         best_edge = edge_home
         best_pick = {
@@ -162,9 +111,12 @@ def evaluate_moneyline_market(
             "implied_prob": round(imp_home, 3),
             "edge": round(edge_home, 3),
             "confidence": round((system_conf + prob_home) / 2, 3),
-            "reason": "Normalized edge after home field, bullpen and data quality adjustments"
+            "reason": "Monte Carlo ML (starter + bullpen, 7–9 innings), adjusted for data quality"
         }
 
+    # =========================
+    # Pick AWAY
+    # =========================
     if edge_away >= best_edge:
         best_pick = {
             "market": "moneyline",
@@ -175,7 +127,25 @@ def evaluate_moneyline_market(
             "implied_prob": round(imp_away, 3),
             "edge": round(edge_away, 3),
             "confidence": round((system_conf + prob_away) / 2, 3),
-            "reason": "Normalized edge after bullpen and data quality adjustments"
+            "reason": "Monte Carlo ML (starter + bullpen, 7–9 innings), adjusted for data quality"
         }
+
+    if not best_pick:
+        return None
+
+    # =========================
+    # Correlación ML ↔ Totals
+    # =========================
+    corr = ml_totals_correlation_adjustment(best_pick, analysis)
+
+    best_pick["edge"] = round(
+        best_pick["edge"] * corr["edge_multiplier"], 3
+    )
+
+    best_pick["confidence"] = round(
+        best_pick["confidence"] * corr["confidence_multiplier"], 3
+    )
+
+    best_pick["correlation_reason"] = corr["reason"]
 
     return best_pick
