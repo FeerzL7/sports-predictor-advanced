@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional
 from statsapi import lookup_team
-
+from sports.baseball.mlb.constants.mlb_constants import SEASON
 from sports.baseball.mlb.data_sources.statsapi_client import (
     statsapi_get,
     safe_int,
@@ -41,6 +41,7 @@ def get_team_season_stats(team_id: int) -> Dict[str, Any]:
             "team_stats",
             {
                 "teamId": team_id,
+                "season": SEASON,
                 "stats": "season",
                 "group": "hitting"
             }
