@@ -29,3 +29,31 @@
 2026-01-28 01:02:04 | core.storage.picks_db | INFO | Pick 3 updated: WIN | Profit=106.25000000000001
 2026-01-28 01:02:04 | core.storage.picks_db | INFO | Database schema initialized
 2026-01-28 01:02:04 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Pick saved (ID=4): moneyline | Yankees home | Edge=5.0%
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Pick 4 updated: WIN | Profit=106.25000000000001
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:24 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Pick saved (ID=5): moneyline | Yankees home | Edge=5.0%
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Pick 5 updated: WIN | Profit=106.25000000000001
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | Database schema initialized
+2026-01-28 01:08:38 | core.storage.picks_db | INFO | PicksDatabase initialized: data/test_picks.db
