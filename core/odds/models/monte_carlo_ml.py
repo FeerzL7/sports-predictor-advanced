@@ -41,14 +41,28 @@ def monte_carlo_moneyline(
     if home_mean == 0 or away_mean == 0:
         return {"home_win_prob": 0.5, "away_win_prob": 0.5}
 
-    # Bullpen (si existe)
+    # ✨ NUEVO: Obtener bullpen_era REAL (con fallback a adjusted)
     pitching = analysis.get("analysis", {}).get("pitching", {})
-    bullpen_home = pitching.get("home", {}).get("bullpen_era", 4.5)
-    bullpen_away = pitching.get("away", {}).get("bullpen_era", 4.5)
+    
+    home_bullpen_data = pitching.get("home_bullpen", {})
+    away_bullpen_data = pitching.get("away_bullpen", {})
+    
+    bullpen_home = (
+        home_bullpen_data.get("bullpen_era_adj") or
+        home_bullpen_data.get("bullpen_era") or
+        4.20
+    )
+    
+    bullpen_away = (
+        away_bullpen_data.get("bullpen_era_adj") or
+        away_bullpen_data.get("bullpen_era") or
+        4.20
+    )
 
-    # Ajuste bullpen → menor ERA = menos carreras
-    bullpen_adj_home = max(0.8, min(1.2, bullpen_away / bullpen_home))
-    bullpen_adj_away = max(0.8, min(1.2, bullpen_home / bullpen_away))
+    # Ajuste bullpen → menor ERA = menos carreras permitidas
+    # Home offense se beneficia si bullpen rival (away) es malo
+    bullpen_adj_home = max(0.8, min(1.2, bullpen_away / 4.20))
+    bullpen_adj_away = max(0.8, min(1.2, bullpen_home / 4.20))
 
     home_wins = 0
     away_wins = 0
@@ -62,7 +76,7 @@ def monte_carlo_moneyline(
             home_runs += simulate_inning(home_mean)
             away_runs += simulate_inning(away_mean)
 
-        # Innings 7–9 (bullpen)
+        # Innings 7–9 (bullpen) ✨ AHORA USA BULLPEN REAL
         for _ in range(3):
             home_runs += simulate_inning(home_mean * bullpen_adj_home)
             away_runs += simulate_inning(away_mean * bullpen_adj_away)
@@ -83,5 +97,8 @@ def monte_carlo_moneyline(
     return {
         "home_win_prob": round(home_wins / total, 4),
         "away_win_prob": round(away_wins / total, 4),
-        "mean_run_diff": round(home_mean - away_mean, 3)
+        "mean_run_diff": round(home_mean - away_mean, 3),
+        # ✨ DEBUG: Incluir bullpen usado
+        "bullpen_era_home": round(bullpen_home, 2),
+        "bullpen_era_away": round(bullpen_away, 2)
     }

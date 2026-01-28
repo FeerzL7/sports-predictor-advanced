@@ -108,7 +108,7 @@ class MLBAdapter(SportAdapter):
         """
         Salida estándar.
         - market SIEMPRE existe
-        - analysis.pitching SIEMPRE existe
+        - analysis.pitching SIEMPRE existe (con bullpen)
         - context.home / context.away SIEMPRE existen
         """
 
@@ -128,9 +128,11 @@ class MLBAdapter(SportAdapter):
 
             "analysis": {
                 "pitching": {
-                    # IMPORTANTE: aquí debe venir bullpen_era si existe
                     "home": p.get("home_stats") or {},
                     "away": p.get("away_stats") or {},
+                    # ✨ NUEVO: Agregar bullpen
+                    "home_bullpen": p.get("home_bullpen") or {},
+                    "away_bullpen": p.get("away_bullpen") or {},
                 },
                 "offense": {
                     "home": p.get("home_offense") or {},
@@ -153,8 +155,6 @@ class MLBAdapter(SportAdapter):
                 "total_runs": p.get("proj_total"),
             },
 
-            # Market base
-            # moneyline se inyecta EXCLUSIVAMENTE por provider
             "market": {
                 "total": {
                     "line": p.get("total_line"),

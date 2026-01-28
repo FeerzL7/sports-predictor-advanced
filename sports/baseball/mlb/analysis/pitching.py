@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from typing import Dict, Any, List, Optional, Tuple
 from sports.baseball.mlb.data_sources.schedule_provider import get_schedule_by_date
+from sports.baseball.mlb.analysis.bullpen import analizar_bullpens
 from sports.baseball.mlb.data_sources.pitching_provider import (
     lookup_player_id,
     get_pitch_hand,
@@ -377,5 +378,6 @@ def analizar_pitchers(date: Optional[str] = None) -> List[Dict[str, Any]]:
             'start_time': juego.get('game_datetime', '')[:19],
             'data_warnings': warnings
         })
-
+    
+    partidos = analizar_bullpens(partidos)
     return partidos
