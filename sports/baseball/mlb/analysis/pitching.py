@@ -200,7 +200,7 @@ def _calc_days_rest(logs: List[Dict[str, Any]]) -> Optional[int]:
     last_game_date = datetime.strptime(logs_sorted[0]['date'], '%Y-%m-%d')
     return (datetime.now() - last_game_date).days
 
-def build_pitcher_metrics(name: str) -> PitcherMetrics:
+def build_pitcher_metrics(name: str, season: int = SEASON) -> PitcherMetrics:
     pid = _get_player_id(name)
     tbd = pid is None
 
@@ -214,7 +214,8 @@ def build_pitcher_metrics(name: str) -> PitcherMetrics:
         'no_recent_data': False
     }
 
-    if tbd:
+    if not tbd:
+        stat = _season_stat(pid, season)
         return PitcherMetrics(
             player_id=None,
             name=name or "TBD",
@@ -339,10 +340,15 @@ def build_pitcher_metrics(name: str) -> PitcherMetrics:
 # API PÚBLICA DEL MÓDULO
 # =========================
 
-def analizar_pitchers(date: Optional[str] = None) -> List[Dict[str, Any]]:
+def analizar_pitchers(date: Optional[str] = None, season: int = None) -> List[Dict[str, Any]]:
+    """Analiza pitchers con season específico."""
+    
     if date is None:
         date = datetime.now().strftime('%Y-%m-%d')
-
+    
+    if season is None:
+        season = int(date[:4])  # Extraer de fecha: "2024-04-01" → 2024
+    
     sched = probables_today(date)
     partidos = []
 
@@ -352,8 +358,8 @@ def analizar_pitchers(date: Optional[str] = None) -> List[Dict[str, Any]]:
         home_p = juego.get('home_probable_pitcher', 'TBD')
         away_p = juego.get('away_probable_pitcher', 'TBD')
 
-        home_stats = build_pitcher_metrics(home_p).to_dict()
-        away_stats = build_pitcher_metrics(away_p).to_dict()
+        home_stats = build_pitcher_metrics(home_p, season).to_dict()
+        away_stats = build_pitcher_metrics(away_p, season).to_dict()
 
         warnings = []
         if home_stats['flags']['tbd'] or away_stats['flags']['tbd']:
@@ -378,6 +384,5 @@ def analizar_pitchers(date: Optional[str] = None) -> List[Dict[str, Any]]:
             'start_time': juego.get('game_datetime', '')[:19],
             'data_warnings': warnings
         })
-    
-    partidos = analizar_bullpens(partidos)
+
     return partidos

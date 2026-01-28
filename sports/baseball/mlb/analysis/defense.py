@@ -8,6 +8,7 @@ from sports.baseball.mlb.data_sources.statsapi_client import (
 )
 
 from sports.baseball.mlb.data_sources.team_stats_provider import get_team_id
+from sports.baseball.mlb.data_sources.mlb_api_wrapper import mlb_api_get
 
 # =========================
 # CONFIG
@@ -64,15 +65,16 @@ def empirical_bayes_adjust(
     return (value * n + league_value * eb_n) / (n + eb_n)
 
 
-def _fetch_fielding_team_stats(team_id: int) -> Dict[str, Any]:
+def _fetch_fielding_team_stats(team_id: int, season: int = 2024) -> Dict[str, Any]:
     try:
-        resp = statsapi_get(
+        resp = mlb_api_get(
             "team_stats",
             {
                 "teamId": team_id,
                 "group": "fielding",
                 "stats": "season"
-            }
+            },
+            season=season
         )
         return resp["stats"][0]["splits"][0]["stat"]
     except Exception:
@@ -84,25 +86,9 @@ def _fetch_recent_fielding(
     season: int,
     limit_games: int
 ) -> List[Dict[str, Any]]:
-    try:
-        resp = statsapi_get(
-            "team_game_logs",
-            {
-                "teamId": team_id,
-                "season": season,
-                "limit": limit_games
-            }
-        )
-
-        stats = resp.get("stats", [])
-        if not stats:
-            return []
-
-        return stats[0].get("splits", [])
-
-    except Exception:
-        return []
-
+    # NOTA: team_game_logs no existe en StatsAPI público
+    # Dejamos vacío para evitar errores
+    return []
 
 def _calc_der_proxy(_: Dict[str, Any]) -> Optional[float]:
     return None
@@ -110,7 +96,12 @@ def _calc_der_proxy(_: Dict[str, Any]) -> Optional[float]:
 # =========================
 # CORE
 # =========================
-def _build_team_defense(team: str) -> TeamDefenseMetrics:
+def _build_team_defense(team: str, season: int = None) -> TeamDefenseMetrics:
+    """Construye métricas defensivas."""
+    
+    if season is None:
+        season = SEASON
+    
     flags = {
         "no_recent": False,
         "low_sample": False,
@@ -125,7 +116,7 @@ def _build_team_defense(team: str) -> TeamDefenseMetrics:
         return TeamDefenseMetrics(
             team_id=None,
             team=team,
-            season=SEASON,
+            season=season,
             games=0,
             errors=int(LEAGUE_ERRORS_PER_GAME * EB_GAMES),
             errors_per_game=LEAGUE_ERRORS_PER_GAME,
@@ -143,7 +134,7 @@ def _build_team_defense(team: str) -> TeamDefenseMetrics:
             confidence=0.5
         )
 
-    st = _fetch_fielding_team_stats(team_id)
+    st = _fetch_fielding_team_stats(team_id, season)
     if not st:
         missing.append("season_fielding")
 
@@ -154,8 +145,8 @@ def _build_team_defense(team: str) -> TeamDefenseMetrics:
 
     errors_pg = errors / games if games > 0 else LEAGUE_ERRORS_PER_GAME
 
-    # Reciente
-    logs = _fetch_recent_fielding(team_id, SEASON, RECENT_GAMES)
+    # Reciente (deshabilitado porque endpoint no existe)
+    logs = _fetch_recent_fielding(team_id, season, RECENT_GAMES)
     if not logs:
         flags["no_recent"] = True
 
@@ -193,7 +184,7 @@ def _build_team_defense(team: str) -> TeamDefenseMetrics:
     return TeamDefenseMetrics(
         team_id=team_id,
         team=team,
-        season=SEASON,
+        season=season,
         games=games,
         errors=errors,
         errors_per_game=round(errors_pg, 3),
@@ -216,13 +207,19 @@ def _build_team_defense(team: str) -> TeamDefenseMetrics:
 # =========================
 # API PÚBLICA
 # =========================
-def analizar_defensiva(partidos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def analizar_defensiva(partidos: List[Dict[str, Any]], season: int = None) -> List[Dict[str, Any]]:
+    """Analiza defensiva con season específico."""
+    
+    if season is None:
+        from datetime import datetime
+        season = datetime.now().year
+    
     for p in partidos:
         home = p["home_team"]
         away = p["away_team"]
 
-        home_def = _build_team_defense(home).to_dict()
-        away_def = _build_team_defense(away).to_dict()
+        home_def = _build_team_defense(home, season).to_dict()
+        away_def = _build_team_defense(away, season).to_dict()
 
         warnings = []
         if home_def["flags"]["low_sample"]:

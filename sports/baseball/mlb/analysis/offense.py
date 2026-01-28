@@ -1,3 +1,6 @@
+# sports/baseball/mlb/analysis/offense.py
+# (Solo mostrar cambios necesarios)
+
 from dataclasses import dataclass, asdict
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -82,7 +85,12 @@ def empirical_bayes_adjust(
 # =========================
 # CORE
 # =========================
-def _build_offense_metrics(team: str) -> TeamOffenseMetrics:
+def _build_offense_metrics(team: str, season: int = None) -> TeamOffenseMetrics:
+    """Construye métricas ofensivas."""
+    
+    if season is None:
+        season = SEASON
+    
     team_id = get_team_id(team)
 
     flags = {
@@ -100,7 +108,7 @@ def _build_offense_metrics(team: str) -> TeamOffenseMetrics:
         return TeamOffenseMetrics(
             team_id=None,
             team=team,
-            season=SEASON,
+            season=season,
             games=0,
             runs_per_game=LEAGUE_RPG,
             ops=LEAGUE_OPS,
@@ -127,9 +135,9 @@ def _build_offense_metrics(team: str) -> TeamOffenseMetrics:
         )
 
     # -------------------------
-    # Season
+    # Season (con season param)
     # -------------------------
-    st = get_team_season_stats(team_id)
+    st = get_team_season_stats(team_id, season)
 
     games = int(safe_float(st.get("gamesPlayed"), 0))
     rpg = safe_float(st.get("runsPerGame"), LEAGUE_RPG)
@@ -149,10 +157,10 @@ def _build_offense_metrics(team: str) -> TeamOffenseMetrics:
             missing.append(k)
 
     # -------------------------
-    # Splits
+    # Splits (con season param)
     # -------------------------
-    split_r = get_team_split_stats(team_id, "R")
-    split_l = get_team_split_stats(team_id, "L")
+    split_r = get_team_split_stats(team_id, "R", season)
+    split_l = get_team_split_stats(team_id, "L", season)
 
     if not split_r["available"] and not split_l["available"]:
         flags["no_splits"] = True
@@ -164,10 +172,10 @@ def _build_offense_metrics(team: str) -> TeamOffenseMetrics:
     wrc_plus_vs_l = (ops_vs_l / LEAGUE_OPS * 100) if ops_vs_l else None
 
     # -------------------------
-    # Recent
+    # Recent (con season param)
     # -------------------------
-    r14 = get_team_last_x_games(team_id, 14)
-    r30 = get_team_last_x_games(team_id, 30)
+    r14 = get_team_last_x_games(team_id, 14, season)
+    r30 = get_team_last_x_games(team_id, 30, season)
 
     if not r14["available"] and not r30["available"]:
         flags["no_recent"] = True
@@ -212,7 +220,7 @@ def _build_offense_metrics(team: str) -> TeamOffenseMetrics:
     return TeamOffenseMetrics(
         team_id=team_id,
         team=team,
-        season=SEASON,
+        season=season,
         games=games,
         runs_per_game=rpg,
         ops=ops,
@@ -241,13 +249,19 @@ def _build_offense_metrics(team: str) -> TeamOffenseMetrics:
 # =========================
 # API
 # =========================
-def analizar_ofensiva(partidos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def analizar_ofensiva(partidos: List[Dict[str, Any]], season: int = None) -> List[Dict[str, Any]]:
+    """Analiza ofensiva con season específico."""
+    
+    if season is None:
+        from datetime import datetime
+        season = datetime.now().year
+    
     for p in partidos:
         home = p["home_team"]
         away = p["away_team"]
 
-        home_off = _build_offense_metrics(home).to_dict()
-        away_off = _build_offense_metrics(away).to_dict()
+        home_off = _build_offense_metrics(home, season).to_dict()
+        away_off = _build_offense_metrics(away, season).to_dict()
 
         warnings = []
         if home_off["flags"]["low_sample"]:

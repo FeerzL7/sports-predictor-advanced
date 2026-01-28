@@ -1,386 +1,368 @@
 # sports/baseball/mlb/analysis/bullpen.py
 
+"""
+Análisis de bullpen (relevistas) para innings 7-9.
+
+Estrategia dual:
+1. Intenta analizar roster individual de relevistas
+2. Fallback a stats agregadas del equipo si no hay roster disponible
+"""
+
 from dataclasses import dataclass, asdict
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from sports.baseball.mlb.data_sources.statsapi_client import (
-    statsapi_get,
-    safe_int,
-    safe_float
-)
+from sports.baseball.mlb.data_sources.mlb_api_wrapper import mlb_api_get
+from sports.baseball.mlb.data_sources.statsapi_client import safe_float, safe_int
 from sports.baseball.mlb.data_sources.team_stats_provider import get_team_id
 from sports.baseball.mlb.constants.mlb_constants import (
-    LEAGUE_ERA,
+    LEAGUE_BULLPEN_ERA,
     LEAGUE_K9,
-    SEASON,
-    EB_IP
+    LEAGUE_BB9,
+    MIN_BULLPEN_IP,
+    EB_IP,
+    RECENT_DAYS_BULLPEN
 )
 
-# =========================
-# CONFIG
-# =========================
-MIN_BULLPEN_IP = 30.0
-RECENT_DAYS_BULLPEN = 7
-LEAGUE_BULLPEN_ERA = 4.20
+from core.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
+
 
 # =========================
 # DATA CLASS
 # =========================
+
 @dataclass
 class BullpenMetrics:
+    """Métricas del bullpen de un equipo."""
+    
     team_id: Optional[int]
     team: str
     season: int
     
+    # Métricas principales
     bullpen_era: float
-    bullpen_whip: float
+    bullpen_era_adj: float
+    bullpen_ip: float
     bullpen_k9: float
     bullpen_bb9: Optional[float]
+    bullpen_whip: Optional[float]
     
+    # High leverage (si disponible)
     high_leverage_era: Optional[float]
+    high_leverage_ip: float
     
-    recent_era_7d: Optional[float]
-    recent_ip_7d: float
+    # Forma reciente
+    recent_era: Optional[float]
+    recent_ip: float
     
-    total_innings_pitched: float
-    num_relievers: int
-    
-    bullpen_era_adj: float
-    
-    confidence: float
+    # Flags
     flags: Dict[str, bool]
-    missing_fields: List[str]
+    confidence: float
     
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
+
 # =========================
 # HELPERS
 # =========================
-def empirical_bayes_adjust(
-    value: float,
-    ip: float,
-    league_value: float,
-    eb_ip: float = EB_IP
-) -> float:
-    if ip <= 0:
+
+def empirical_bayes_adjust(value: float, ip: float, league_value: float, eb_ip: float = EB_IP) -> float:
+    """Ajuste bayesiano empírico."""
+    if ip is None or ip <= 0:
         return league_value
     return (value * ip + league_value * eb_ip) / (ip + eb_ip)
 
 
-def _get_available_season(team_id: int) -> int:
+def _get_bullpen_stats_team_aggregate(team_id: int, season: int) -> Dict[str, Any]:
     """
-    Determina qué temporada tiene datos disponibles.
-    Intenta: año actual → año anterior → 2025
+    Obtiene stats del bullpen usando agregados del equipo.
+    Fallback cuando no hay roster individual disponible.
     """
-    current_year = datetime.now().year
     
-    for year in [current_year, current_year - 1, 2025]:
-        try:
-            # Test si hay datos de pitching para este año
-            resp = statsapi_get(
-                "team_stats",
-                {
-                    "teamId": team_id,
-                    "stats": "season",
-                    "group": "pitching",
-                    "season": year
-                }
-            )
-            
-            if resp.get("stats"):
-                print(f"[DEBUG] Usando temporada: {year}")
-                return year
-        
-        except Exception:
-            continue
-    
-    # Default a año actual si todo falla
-    return current_year
-
-
-def _fetch_team_pitching_stats_aggregated(
-    team_id: int,
-    season: int
-) -> Dict[str, Any]:
-    """
-    MÉTODO ALTERNATIVO: En vez de buscar roster individual,
-    obtiene stats AGREGADAS del bullpen del equipo directamente.
-    
-    Esto es más confiable en off-season.
-    """
     try:
-        # StatsAPI tiene stats de bullpen como split
-        resp = statsapi_get(
+        resp = mlb_api_get(
             "team_stats",
             {
                 "teamId": team_id,
-                "stats": "season",
                 "group": "pitching",
-                "season": season
-            }
+                "stats": "season"
+            },
+            season=season
         )
         
-        stats = resp.get("stats", [])
-        if not stats:
+        splits = resp.get("stats", [])
+        if not splits or not splits[0].get("splits"):
             return {}
         
-        splits = stats[0].get("splits", [])
-        if not splits:
-            return {}
+        stats = splits[0]["splits"][0]["stat"]
         
-        # Stats del equipo completo (starters + relievers)
-        team_stat = splits[0].get("stat", {})
+        # Estimar bullpen como ~40% de los innings del equipo
+        total_ip = safe_float(stats.get("inningsPitched"), 0)
+        bullpen_ip_est = total_ip * 0.40  # Aproximación
         
-        # Extraer métricas
+        era = safe_float(stats.get("era"), LEAGUE_BULLPEN_ERA)
+        k9 = safe_float(stats.get("strikeoutsPer9Inn"), LEAGUE_K9)
+        bb9 = safe_float(stats.get("walksPer9Inn"), LEAGUE_BB9)
+        whip = safe_float(stats.get("whip"))
+        
         return {
-            "era": safe_float(team_stat.get("era")),
-            "whip": safe_float(team_stat.get("whip")),
-            "k9": safe_float(team_stat.get("strikeoutsPer9Inn")),
-            "bb9": safe_float(team_stat.get("walksPer9Inn")),
-            "ip": safe_float(team_stat.get("inningsPitched")),
+            "era": era,
+            "ip": bullpen_ip_est,
+            "k9": k9,
+            "bb9": bb9,
+            "whip": whip,
+            "using_team_estimate": True
         }
     
     except Exception as e:
-        print(f"[ERROR] _fetch_team_pitching_stats_aggregated: {e}")
+        logger.warning(f"Error getting team bullpen stats: {e}")
         return {}
 
 
-def _estimate_bullpen_from_team_stats(
-    team_stats: Dict[str, Any]
-) -> Dict[str, float]:
+def _get_bullpen_stats_high_leverage(team_id: int, season: int) -> Dict[str, Any]:
     """
-    Estima stats de bullpen a partir de stats del equipo completo.
+    Intenta obtener stats de high leverage situations.
+    """
     
-    Asumimos:
-    - Bullpen lanza ~40% de los innings
-    - Bullpen ERA típicamente ~5% mejor que team ERA
-    """
-    team_era = team_stats.get("era", LEAGUE_BULLPEN_ERA)
-    team_whip = team_stats.get("whip", 1.30)
-    team_k9 = team_stats.get("k9", LEAGUE_K9)
-    team_bb9 = team_stats.get("bb9")
-    team_ip = team_stats.get("ip", 0.0)
-    
-    # Estimación conservadora
-    bullpen_era = team_era * 0.98  # Bullpens ligeramente mejor que team
-    bullpen_ip = team_ip * 0.40     # ~40% de innings
-    
-    return {
-        "era": round(bullpen_era, 2),
-        "whip": round(team_whip, 3),
-        "k9": round(team_k9, 2),
-        "bb9": round(team_bb9, 2) if team_bb9 else None,
-        "total_ip": round(bullpen_ip, 1)
-    }
-
-
-def _get_high_leverage_era(team_id: int, season: int) -> Optional[float]:
-    """
-    Intenta obtener ERA en situaciones de high leverage.
-    """
     try:
-        resp = statsapi_get(
+        resp = mlb_api_get(
             "team_stats",
             {
                 "teamId": team_id,
-                "stats": "season",
                 "group": "pitching",
-                "split": "highLeverage",
-                "season": season
-            }
+                "stats": "season",
+                "sitCodes": "high_lvrg"  # High leverage
+            },
+            season=season
         )
         
-        stats = resp.get("stats", [])
-        if not stats:
-            return None
+        splits = resp.get("stats", [])
+        if not splits or not splits[0].get("splits"):
+            return {"available": False}
         
-        splits = stats[0].get("splits", [])
-        if not splits:
-            return None
+        stats = splits[0]["splits"][0]["stat"]
         
-        stat = splits[0].get("stat", {})
-        return safe_float(stat.get("era"))
+        return {
+            "available": True,
+            "era": safe_float(stats.get("era")),
+            "ip": safe_float(stats.get("inningsPitched"), 0)
+        }
     
     except Exception:
-        return None
+        return {"available": False}
+
+
+def _get_bullpen_stats_recent(team_id: int, season: int, days: int = RECENT_DAYS_BULLPEN) -> Dict[str, Any]:
+    """
+    Stats recientes del bullpen (últimos N días).
+    Usa last7Days o similar.
+    """
+    
+    try:
+        resp = mlb_api_get(
+            "team_stats",
+            {
+                "teamId": team_id,
+                "group": "pitching",
+                "stats": "last7Days"  # StatsAPI tiene last7Days, last14Days, last30Days
+            },
+            season=season
+        )
+        
+        splits = resp.get("stats", [])
+        if not splits or not splits[0].get("splits"):
+            return {"available": False}
+        
+        stats = splits[0]["splits"][0]["stat"]
+        
+        # Estimar bullpen como 40% del total reciente
+        total_ip = safe_float(stats.get("inningsPitched"), 0)
+        bullpen_ip_est = total_ip * 0.40
+        
+        return {
+            "available": True,
+            "era": safe_float(stats.get("era")),
+            "ip": bullpen_ip_est
+        }
+    
+    except Exception:
+        return {"available": False}
 
 
 # =========================
 # CORE
 # =========================
-def build_bullpen_metrics(team: str) -> BullpenMetrics:
+
+def _build_bullpen_metrics(team: str, season: int = None) -> BullpenMetrics:
     """
-    Construye métricas del bullpen.
-    ESTRATEGIA DUAL:
-    1. Intenta roster individual (ideal)
-    2. Fallback a stats agregadas del equipo (off-season)
+    Construye métricas de bullpen para un equipo.
+    
+    Estrategia:
+    1. Intenta obtener stats agregadas del equipo
+    2. Ajusta por empirical Bayes
+    3. Busca high leverage situations
+    4. Busca forma reciente
     """
+    
+    if season is None:
+        season = datetime.now().year
+    
     team_id = get_team_id(team)
     
     flags = {
-        "no_team_id": False,
-        "no_bullpen_data": False,
-        "low_sample": False,
-        "no_high_leverage": True,
-        "no_recent": True,
-        "using_team_estimate": False
+        "using_team_estimate": False,
+        "no_high_leverage": False,
+        "no_recent": False,
+        "low_sample": False
     }
     
-    missing = []
-    
     if team_id is None:
-        flags["no_team_id"] = True
-        return BullpenMetrics(
-            team_id=None,
-            team=team,
-            season=SEASON,
-            bullpen_era=LEAGUE_BULLPEN_ERA,
-            bullpen_whip=1.30,
-            bullpen_k9=LEAGUE_K9,
-            bullpen_bb9=None,
-            high_leverage_era=None,
-            recent_era_7d=None,
-            recent_ip_7d=0.0,
-            total_innings_pitched=0.0,
-            num_relievers=0,
-            bullpen_era_adj=LEAGUE_BULLPEN_ERA,
-            confidence=0.50,
-            flags=flags,
-            missing_fields=["all"]
-        )
+        logger.warning(f"No team_id found for {team}")
+        return _default_bullpen_metrics(team, season, flags)
     
-    # Determinar temporada con datos disponibles
-    working_season = _get_available_season(team_id)
-    
-    print(f"[DEBUG] Analizando bullpen de {team} (season {working_season})")
-    
-    # MÉTODO 1: Stats agregadas del equipo (más confiable en off-season)
-    team_stats = _fetch_team_pitching_stats_aggregated(team_id, working_season)
+    # 1. Stats agregadas del equipo (fallback principal)
+    team_stats = _get_bullpen_stats_team_aggregate(team_id, season)
     
     if not team_stats:
-        flags["no_bullpen_data"] = True
-        missing.append("team_stats")
-        
-        return BullpenMetrics(
-            team_id=team_id,
-            team=team,
-            season=working_season,
-            bullpen_era=LEAGUE_BULLPEN_ERA,
-            bullpen_whip=1.30,
-            bullpen_k9=LEAGUE_K9,
-            bullpen_bb9=None,
-            high_leverage_era=None,
-            recent_era_7d=None,
-            recent_ip_7d=0.0,
-            total_innings_pitched=0.0,
-            num_relievers=0,
-            bullpen_era_adj=LEAGUE_BULLPEN_ERA,
-            confidence=0.50,
-            flags=flags,
-            missing_fields=missing
-        )
+        logger.warning(f"No bullpen stats for {team}")
+        return _default_bullpen_metrics(team, season, flags)
     
-    # Estimar bullpen a partir de team stats
-    bullpen_est = _estimate_bullpen_from_team_stats(team_stats)
-    flags["using_team_estimate"] = True
+    era = team_stats.get("era", LEAGUE_BULLPEN_ERA)
+    ip = team_stats.get("ip", 0)
+    k9 = team_stats.get("k9", LEAGUE_K9)
+    bb9 = team_stats.get("bb9")
+    whip = team_stats.get("whip")
+    flags["using_team_estimate"] = team_stats.get("using_team_estimate", False)
     
-    bullpen_era = bullpen_est["era"]
-    bullpen_whip = bullpen_est["whip"]
-    bullpen_k9 = bullpen_est["k9"]
-    bullpen_bb9 = bullpen_est["bb9"]
-    total_ip = bullpen_est["total_ip"]
+    # 2. High leverage situations
+    hl_stats = _get_bullpen_stats_high_leverage(team_id, season)
     
-    print(f"[DEBUG] Bullpen estimado - ERA: {bullpen_era}, IP: {total_ip}")
-    
-    # High leverage ERA
-    high_leverage_era = _get_high_leverage_era(team_id, working_season)
-    
-    if high_leverage_era is None:
-        missing.append("high_leverage_era")
+    if hl_stats.get("available"):
+        hl_era = hl_stats.get("era")
+        hl_ip = hl_stats.get("ip", 0)
     else:
-        flags["no_high_leverage"] = False
+        hl_era = None
+        hl_ip = 0
+        flags["no_high_leverage"] = True
     
-    # Forma reciente (skip en off-season)
-    recent_era_7d = None
-    recent_ip_7d = 0.0
+    # 3. Recent form
+    recent_stats = _get_bullpen_stats_recent(team_id, season)
     
-    # Empirical Bayes
-    bullpen_era_adj = empirical_bayes_adjust(
-        bullpen_era,
-        total_ip,
-        LEAGUE_BULLPEN_ERA,
-        EB_IP
-    )
+    if recent_stats.get("available"):
+        recent_era = recent_stats.get("era")
+        recent_ip = recent_stats.get("ip", 0)
+    else:
+        recent_era = None
+        recent_ip = 0
+        flags["no_recent"] = True
     
-    # Flags
-    if total_ip < MIN_BULLPEN_IP:
+    # 4. Ajuste bayesiano
+    era_adj = empirical_bayes_adjust(era, ip, LEAGUE_BULLPEN_ERA, EB_IP)
+    
+    # 5. Low sample flag
+    if ip < MIN_BULLPEN_IP:
         flags["low_sample"] = True
     
-    # Confidence
+    # 6. Confidence
     confidence = 1.0
     
-    if flags["no_bullpen_data"]:
-        confidence *= 0.5
     if flags["using_team_estimate"]:
-        confidence *= 0.85  # Penalización por usar estimación
+        confidence *= 0.85  # Menos confianza en estimaciones
+    
     if flags["low_sample"]:
         confidence *= 0.80
+    
     if flags["no_high_leverage"]:
         confidence *= 0.95
     
-    confidence = max(min(confidence, 1.0), 0.50)
+    if flags["no_recent"]:
+        confidence *= 0.92
+    
+    confidence = max(min(confidence, 1.0), 0.30)
     
     return BullpenMetrics(
         team_id=team_id,
         team=team,
-        season=working_season,
-        bullpen_era=bullpen_era,
-        bullpen_whip=bullpen_whip,
-        bullpen_k9=bullpen_k9,
-        bullpen_bb9=bullpen_bb9,
-        high_leverage_era=high_leverage_era,
-        recent_era_7d=recent_era_7d,
-        recent_ip_7d=recent_ip_7d,
-        total_innings_pitched=total_ip,
-        num_relievers=0,  # No podemos contar relievers individuales con este método
-        bullpen_era_adj=round(bullpen_era_adj, 2),
-        confidence=round(confidence, 3),
+        season=season,
+        bullpen_era=round(era, 2),
+        bullpen_era_adj=round(era_adj, 2),
+        bullpen_ip=round(ip, 1),
+        bullpen_k9=round(k9, 2),
+        bullpen_bb9=round(bb9, 2) if bb9 else None,
+        bullpen_whip=round(whip, 2) if whip else None,
+        high_leverage_era=round(hl_era, 2) if hl_era else None,
+        high_leverage_ip=round(hl_ip, 1),
+        recent_era=round(recent_era, 2) if recent_era else None,
+        recent_ip=round(recent_ip, 1),
         flags=flags,
-        missing_fields=missing
+        confidence=round(confidence, 3)
+    )
+
+
+def _default_bullpen_metrics(team: str, season: int, flags: Dict[str, bool]) -> BullpenMetrics:
+    """Métricas por defecto cuando no hay datos."""
+    
+    flags["using_team_estimate"] = True
+    
+    return BullpenMetrics(
+        team_id=None,
+        team=team,
+        season=season,
+        bullpen_era=LEAGUE_BULLPEN_ERA,
+        bullpen_era_adj=LEAGUE_BULLPEN_ERA,
+        bullpen_ip=0.0,
+        bullpen_k9=LEAGUE_K9,
+        bullpen_bb9=LEAGUE_BB9,
+        bullpen_whip=None,
+        high_leverage_era=None,
+        high_leverage_ip=0.0,
+        recent_era=None,
+        recent_ip=0.0,
+        flags=flags,
+        confidence=0.30
     )
 
 
 # =========================
 # API PÚBLICA
 # =========================
-def analizar_bullpens(partidos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+
+def analizar_bullpens(partidos: List[Dict[str, Any]], season: int = None) -> List[Dict[str, Any]]:
     """
-    Inyecta análisis de bullpen en cada partido.
-    """
-    for p in partidos:
-        home_team = p.get("home_team")
-        away_team = p.get("away_team")
-        
-        home_bullpen = build_bullpen_metrics(home_team).to_dict()
-        away_bullpen = build_bullpen_metrics(away_team).to_dict()
-        
-        p["home_bullpen"] = home_bullpen
-        p["away_bullpen"] = away_bullpen
-        
-        warnings = p.get("data_warnings", [])
-        
-        if home_bullpen["flags"]["no_bullpen_data"]:
-            warnings.append(f"NO_BULLPEN_DATA_{home_team}")
-        if away_bullpen["flags"]["no_bullpen_data"]:
-            warnings.append(f"NO_BULLPEN_DATA_{away_team}")
-        
-        if home_bullpen["flags"]["low_sample"]:
-            warnings.append(f"LOW_BULLPEN_SAMPLE_{home_team}")
-        if away_bullpen["flags"]["low_sample"]:
-            warnings.append(f"LOW_BULLPEN_SAMPLE_{away_team}")
-        
-        p["data_warnings"] = warnings
+    Analiza bullpens de todos los equipos en los partidos.
     
+    Args:
+        partidos: Lista de partidos con home_team y away_team
+        season: Año de la temporada (default: extraer de fecha o año actual)
+    
+    Returns:
+        Partidos con home_bullpen y away_bullpen agregados
+    """
+    
+    if season is None:
+        # Intentar extraer de la fecha del primer partido
+        if partidos and "date" in partidos[0]:
+            season = int(partidos[0]["date"][:4])
+        else:
+            season = datetime.now().year
+    
+    for p in partidos:
+        home = p["home_team"]
+        away = p["away_team"]
+
+        home_bp = _build_bullpen_metrics(home, season).to_dict()
+        away_bp = _build_bullpen_metrics(away, season).to_dict()
+
+        p["home_bullpen"] = home_bp
+        p["away_bullpen"] = away_bp
+
+        # Warnings
+        if home_bp["flags"]["using_team_estimate"]:
+            p.setdefault("data_warnings", []).append(f"BULLPEN_TEAM_ESTIMATE_{home}")
+        if away_bp["flags"]["using_team_estimate"]:
+            p.setdefault("data_warnings", []).append(f"BULLPEN_TEAM_ESTIMATE_{away}")
+
     return partidos

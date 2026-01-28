@@ -1,11 +1,10 @@
+# sports/baseball/mlb/data_sources/team_stats_provider.py
+
 from typing import Dict, Any, Optional
 from statsapi import lookup_team
-from sports.baseball.mlb.constants.mlb_constants import SEASON
-from sports.baseball.mlb.data_sources.statsapi_client import (
-    statsapi_get,
-    safe_int,
-    safe_float
-)
+
+from sports.baseball.mlb.data_sources.mlb_api_wrapper import mlb_api_get
+from sports.baseball.mlb.data_sources.statsapi_client import safe_int, safe_float
 
 # =========================
 # TEAM ID
@@ -32,19 +31,19 @@ def get_team_id(team_name: str) -> Optional[int]:
 # SEASON OFFENSE STATS
 # =========================
 
-def get_team_season_stats(team_id: int) -> Dict[str, Any]:
+def get_team_season_stats(team_id: int, season: int = 2024) -> Dict[str, Any]:
     """
     Stats ofensivos de temporada (season).
     """
     try:
-        resp = statsapi_get(
+        resp = mlb_api_get(
             "team_stats",
             {
                 "teamId": team_id,
-                "season": SEASON,
                 "stats": "season",
                 "group": "hitting"
-            }
+            },
+            season=season
         )
 
         splits = resp.get("stats", [])
@@ -85,21 +84,22 @@ def get_team_season_stats(team_id: int) -> Dict[str, Any]:
 # SPLITS VS HAND (R / L)
 # =========================
 
-def get_team_split_stats(team_id: int, hand: str) -> Dict[str, Any]:
+def get_team_split_stats(team_id: int, hand: str, season: int = 2024) -> Dict[str, Any]:
     """
     Stats ofensivos vs pitchers derechos o zurdos.
     """
     split_key = "vsRhp" if hand.upper() == "R" else "vsLhp"
 
     try:
-        resp = statsapi_get(
+        resp = mlb_api_get(
             "team_stats",
             {
                 "teamId": team_id,
                 "stats": "season",
                 "group": "hitting",
                 "split": split_key
-            }
+            },
+            season=season
         )
 
         splits = resp.get("stats", [])
@@ -130,18 +130,19 @@ def get_team_split_stats(team_id: int, hand: str) -> Dict[str, Any]:
 # RECENT FORM (LAST X GAMES)
 # =========================
 
-def get_team_last_x_games(team_id: int, window: int) -> Dict[str, Any]:
+def get_team_last_x_games(team_id: int, window: int, season: int = 2024) -> Dict[str, Any]:
     """
     Forma reciente del equipo (last X games).
     """
     try:
-        resp = statsapi_get(
+        resp = mlb_api_get(
             "team_stats",
             {
                 "teamId": team_id,
                 "stats": f"last{window}Games",
                 "group": "hitting"
-            }
+            },
+            season=season
         )
 
         splits = resp.get("stats", [])

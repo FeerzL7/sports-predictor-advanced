@@ -11,7 +11,7 @@ from sports.baseball.mlb.data_sources.statsapi_client import statsapi_get
 def mlb_api_get(
     endpoint: str,
     params: Dict[str, Any],
-    season: int = 2024,  # Default a 2024 para backtesting
+    season: int = 2024,
     **kwargs
 ) -> Dict[str, Any]:
     """
@@ -27,6 +27,9 @@ def mlb_api_get(
         Response de StatsAPI
     """
     
+    # Copiar params para no mutar original
+    params = params.copy()
+    
     # Endpoints que requieren season
     season_required = [
         "team_stats",
@@ -36,12 +39,10 @@ def mlb_api_get(
     
     # Agregar season si no está y es requerido
     if endpoint in season_required and "season" not in params:
-        params = params.copy()  # No mutar original
         params["season"] = season
     
     # Agregar sportId si es schedule y no está
     if endpoint == "schedule" and "sportId" not in params:
-        params = params.copy()
         params["sportId"] = 1  # MLB
     
     return statsapi_get(endpoint, params, **kwargs)

@@ -16,7 +16,7 @@ from sports.baseball.mlb.analysis.defense import analizar_defensiva
 from sports.baseball.mlb.analysis.context import analizar_contexto
 from sports.baseball.mlb.analysis.h2h import analizar_h2h
 from sports.baseball.mlb.analysis.projections import proyectar_totales
-
+from sports.baseball.mlb.analysis.bullpen import analizar_bullpens
 from core.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -78,12 +78,22 @@ class MLBAdapter(SportAdapter):
     # Analysis Pipeline
     # =========================
     def analyze_event(self, event: dict) -> dict:
+        """Análisis completo con season del evento."""
+        
         partidos = [event]
-
-        partidos = analizar_ofensiva(partidos)
-        partidos = analizar_defensiva(partidos)
+        
+        # Extraer season del evento (si existe)
+        season = event.get("season")
+        if season is None and event.get("date"):
+            season = int(event["date"][:4])
+        
+        # Pasar season a todos los análisis
+        partidos = analizar_pitchers(event.get("date"), season) if "date" in event else partidos
+        partidos = analizar_ofensiva(partidos, season)
+        partidos = analizar_defensiva(partidos, season)
         partidos = analizar_contexto(partidos)
-        partidos = analizar_h2h(partidos)
+        partidos = analizar_h2h(partidos, season)
+        partidos = analizar_bullpens(partidos, season)
         partidos = proyectar_totales(partidos)
 
         analysis = self._normalize_analysis(partidos[0])

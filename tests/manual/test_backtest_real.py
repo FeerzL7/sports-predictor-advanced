@@ -79,13 +79,16 @@ def test_real_backtest():
     
     for game in games:
         # Convertir HistoricalGame a formato event
+        game_season = int(game.date[:4])
+        
         event = {
             "game_id": game.game_id,
             "date": game.date,
             "home_team": game.home_team,
             "away_team": game.away_team,
             "venue": game.venue,
-            "start_time": f"{game.date}T19:00:00"
+            "start_time": f"{game.date}T19:00:00",
+            "season": game_season  # ✨ Agregar season
         }
         
         try:
