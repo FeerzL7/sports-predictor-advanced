@@ -1,7 +1,13 @@
+# sports/baseball/mlb/data_sources/statsapi_client.py
+
 from typing import Dict, Any, Optional
 import time
 
 from statsapi import get
+from core.utils.logger import setup_logger, log_api_call, log_error_with_context
+
+# ✨ NUEVO: Setup logger
+logger = setup_logger(__name__)
 
 
 # =========================
@@ -41,24 +47,43 @@ def statsapi_get(
 
     - Retries automáticos
     - Respuesta SIEMPRE dict o excepción clara
-    - No imprime, no loggea, no decide
+    - Logging completo
     """
+
+    # ✨ NUEVO: Log API call
+    log_api_call(endpoint, params, logger)
 
     last_error: Optional[Exception] = None
 
     for attempt in range(retries + 1):
         try:
+            logger.debug(f"StatsAPI request (attempt {attempt + 1}/{retries + 1}): {endpoint}")
+            
             resp = get(endpoint, params)
 
             if isinstance(resp, dict):
+                logger.debug(f"StatsAPI success: {endpoint}")
                 return resp
 
             raise ValueError(f"Invalid response type: {type(resp)}")
 
         except Exception as e:
             last_error = e
+            
+            # ✨ NUEVO: Log error
+            logger.warning(
+                f"StatsAPI attempt {attempt + 1} failed: {endpoint} - {e}"
+            )
+            
             if attempt < retries:
                 time.sleep(sleep)
+
+    # ✨ NUEVO: Log critical failure
+    log_error_with_context(
+        last_error,
+        {"endpoint": endpoint, "params": params, "retries": retries},
+        logger
+    )
 
     raise RuntimeError(
         f"StatsAPI failed after {retries + 1} attempts: {last_error}"

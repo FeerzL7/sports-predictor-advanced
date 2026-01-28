@@ -1,0 +1,19 @@
+2026-01-27 19:51:27 | error.error | [31mERROR[0m | Error crítico en producción
+C:\Users\Fernando\OneDrive\Documentos\Clasified\Proyectos\sports-predictor-advanced\tests\manual\test_logging.py:40
+
+2026-01-27 19:51:27 | error.error | [31mERROR[0m | ERROR: ZeroDivisionError: division by zero
+Context: {'operation': 'division', 'numerator': 10, 'denominator': 0}
+C:\Users\Fernando\OneDrive\Documentos\Clasified\Proyectos\sports-predictor-advanced\core\utils\logger.py:272
+Traceback (most recent call last):
+  File "C:\Users\Fernando\OneDrive\Documentos\Clasified\Proyectos\sports-predictor-advanced\tests\manual\test_logging.py", line 83, in test_error_logging
+    result = 10 / 0
+             ~~~^~~
+ZeroDivisionError: division by zero
+2026-01-27 19:51:27 | error.error | [31mERROR[0m | ERROR: ZeroDivisionError: division by zero
+Context: {'operation': 'division', 'numerator': 10, 'denominator': 0}
+C:\Users\Fernando\OneDrive\Documentos\Clasified\Proyectos\sports-predictor-advanced\core\utils\logger.py:272
+Traceback (most recent call last):
+  File "C:\Users\Fernando\OneDrive\Documentos\Clasified\Proyectos\sports-predictor-advanced\tests\manual\test_logging.py", line 83, in test_error_logging
+    result = 10 / 0
+             ~~~^~~
+ZeroDivisionError: division by zero

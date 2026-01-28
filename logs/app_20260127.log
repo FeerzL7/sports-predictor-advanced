@@ -1,0 +1,22 @@
+2026-01-27 19:51:27 | test_basic | INFO | Mensaje INFO - aparece en consola
+2026-01-27 19:51:27 | test_basic | WARNING | Mensaje WARNING - advertencia
+2026-01-27 19:51:27 | test_basic | ERROR | Mensaje ERROR - error recuperable
+2026-01-27 19:51:27 | test_basic | CRITICAL | Mensaje CRITICAL - error grave
+2026-01-27 19:51:27 | api.statsapi | INFO | Consultando StatsAPI...
+2026-01-27 19:51:27 | model.monte_carlo | INFO | Ejecutando simulación Monte Carlo
+2026-01-27 19:51:27 | picks.picks | INFO | Generando picks del día
+2026-01-27 19:51:27 | error.error | ERROR | Error crítico en producción
+2026-01-27 19:51:27 | test_context | INFO | ▶ START: Procesando partido Yankees vs Red Sox
+2026-01-27 19:51:27 | test_context | INFO | Analizando pitching...
+2026-01-27 19:51:27 | test_context | INFO | Analizando offense...
+2026-01-27 19:51:27 | test_context | INFO | Calculando proyecciones...
+2026-01-27 19:51:27 | test_context | INFO | ✓ DONE: Procesando partido Yankees vs Red Sox (0.00s)
+2026-01-27 19:51:27 | picks.picks | INFO | PICK: MONEYLINE | Yankees HOME | Odds: 1.85 | Edge: 5.6% | Confidence: 63.5%
+2026-01-27 19:51:27 | api.api | DEBUG | API CALL: schedule | Params: {'date': '2026-04-15'}
+2026-01-27 19:51:27 | error.error | ERROR | ERROR: ZeroDivisionError: division by zero
+Context: {'operation': 'division', 'numerator': 10, 'denominator': 0}
+Traceback (most recent call last):
+  File "C:\Users\Fernando\OneDrive\Documentos\Clasified\Proyectos\sports-predictor-advanced\tests\manual\test_logging.py", line 83, in test_error_logging
+    result = 10 / 0
+             ~~~^~~
+ZeroDivisionError: division by zero

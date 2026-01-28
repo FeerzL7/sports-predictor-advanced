@@ -10,6 +10,11 @@ from core.odds.utils.odds_converter import (
     normalize_odds_to_decimal,
     implied_probability_from_decimal
 )
+# ✨ NUEVO: Logging
+from core.utils.logger import setup_logger, log_pick
+
+logger = setup_logger(__name__)
+
 
 # =========================
 # Helpers
@@ -58,18 +63,26 @@ def evaluate_moneyline_market(
     flags = analysis.get("flags", [])
 
     if not market or system_conf < min_confidence:
+        logger.debug(f"Moneyline skipped: market={bool(market)}, conf={system_conf}")
         return None
 
     # =========================
     # Monte Carlo ML (CORE)
     # =========================
+    logger.info("Running Monte Carlo simulation for moneyline")
     mc_result = monte_carlo_moneyline(analysis)
 
     prob_home = mc_result.get("home_win_prob")
     prob_away = mc_result.get("away_win_prob")
 
     if prob_home is None or prob_away is None:
+        logger.warning("Monte Carlo returned None probabilities")
         return None
+
+    logger.debug(
+        f"Monte Carlo: Home={prob_home:.3f}, Away={prob_away:.3f}, "
+        f"Bullpen: {mc_result.get('bullpen_era_home', 'N/A')} / {mc_result.get('bullpen_era_away', 'N/A')}"
+    )
 
     # =========================
     # Penalización por data pobre
@@ -84,22 +97,29 @@ def evaluate_moneyline_market(
     away_odds_raw = market.get("away", {}).get("odds") if isinstance(market.get("away"), dict) else market.get("away")
 
     if home_odds_raw is None or away_odds_raw is None:
+        logger.warning(f"Missing odds: home={home_odds_raw}, away={away_odds_raw}")
         return None
 
     try:
-        # ✨ NUEVO: Normalizar a decimal (acepta americano o decimal)
         home_odds_decimal = normalize_odds_to_decimal(home_odds_raw)
         away_odds_decimal = normalize_odds_to_decimal(away_odds_raw)
+        
+        logger.debug(f"Odds normalized: Home {home_odds_raw} → {home_odds_decimal:.3f}, Away {away_odds_raw} → {away_odds_decimal:.3f}")
+    
     except (ValueError, TypeError) as e:
-        # Si falla conversión, skip
+        logger.error(f"Odds conversion failed: {e}")
         return None
 
-    # ✨ NUEVO: Usar implied_probability_from_decimal
     imp_home = implied_probability_from_decimal(home_odds_decimal)
     imp_away = implied_probability_from_decimal(away_odds_decimal)
 
     edge_home = normalize_edge(prob_home, imp_home)
     edge_away = normalize_edge(prob_away, imp_away)
+
+    logger.debug(
+        f"Edges: Home={edge_home:.3f} ({edge_home*100:.1f}%), "
+        f"Away={edge_away:.3f} ({edge_away*100:.1f}%)"
+    )
 
     best_pick = None
     best_edge = min_edge
@@ -113,8 +133,8 @@ def evaluate_moneyline_market(
             "market": "moneyline",
             "side": "home",
             "team": analysis["teams"]["home"],
-            "odds": home_odds_decimal,  # ✨ Guardar como decimal
-            "odds_format": "decimal",    # ✨ NUEVO: Indicar formato
+            "odds": home_odds_decimal,
+            "odds_format": "decimal",
             "model_prob": round(prob_home, 3),
             "implied_prob": round(imp_home, 3),
             "edge": round(edge_home, 3),
@@ -140,6 +160,7 @@ def evaluate_moneyline_market(
         }
 
     if not best_pick:
+        logger.info(f"No moneyline pick: edges below threshold ({min_edge*100:.1f}%)")
         return None
 
     # =========================
@@ -156,5 +177,8 @@ def evaluate_moneyline_market(
     )
 
     best_pick["correlation_reason"] = corr["reason"]
+
+    # ✨ NUEVO: Log pick
+    log_pick(best_pick, logger)
 
     return best_pick
