@@ -1,0 +1,100 @@
+aquí esta mi archivo de la ruta sports/baseball/mlb/constants/
+
+#mlb_constants.py:
+from datetime import datetime
+
+# --------------------------
+# Odds API (MLB specific)
+# --------------------------
+SPORT = "baseball_mlb"
+REGION = "us"
+
+TODAY = datetime.now().strftime('%Y-%m-%d')
+
+# --------------------------
+# Periodos especiales MLB
+# --------------------------
+def es_post_all_star():
+    year = datetime.now().year
+    fecha_all_star = datetime(year, 7, 13)
+    fin_periodo = datetime(year, 7, 15)
+    hoy = datetime.now()
+    return fecha_all_star <= hoy <= fin_periodo
+
+def es_final_temporada():
+    return datetime.now().month >= 9
+
+POST_ALL_STAR_MODE = es_post_all_star()
+END_SEASON_MODE = es_final_temporada()
+
+POST_ALL_STAR_SETTINGS = {
+    "recent_games_weight": 0.40,
+    "pitcher_last_start_required": True,
+    "stake_multiplier": 0.75,
+    "motivation_penalty": 0.05,
+    "offense_volatility_factor": 1.05
+}
+
+END_SEASON_SETTINGS = {
+    "motivation_factor": 0.15,
+    "variance_boost": 0.10,
+    "stake_multiplier": 0.6
+}
+
+VOLATILITY_POST_ASG_FACTOR = 1.15
+
+# --------------------------
+# Park Factors (MLB only)
+# --------------------------
+PARK_FACTORS = {
+    'Coors Field': 1.34,
+    'Fenway Park': 1.12,
+    'Globe Life Field': 1.10,
+    'Oakland Coliseum': 0.94,
+    'Dodger Stadium': 1.01,
+    'Petco Park': 0.92,
+    'Yankee Stadium': 1.08,
+    'default': 1.00
+}
+DEFAULT_PARK_FACTOR = 1.00
+
+# --------------------------
+# Weather impact (Baseball)
+# --------------------------
+WEATHER_TEMP_NEUTRAL = 22.0
+WEATHER_TEMP_PER_RUN = 0.005
+WEATHER_WIND_PER_RUN = 0.002
+WEATHER_MIN_SAMPLE_CONF = 0.7
+
+# --------------------------
+# Context penalties
+# --------------------------
+B2B_PENALTY_RUNS = 0.05
+CONTEXT_BASE_CONFIDENCE = 0.70
+
+# --------------------------
+# League averages MLB
+# --------------------------
+LEAGUE_ERA = 4.30
+LEAGUE_FIP = 4.20
+LEAGUE_K9 = 8.60
+LEAGUE_BB9 = 3.30
+EB_IP = 20.0
+MIN_IP_CONFIDENT = 25.0
+
+LEAGUE_FPCT = 0.985
+LEAGUE_ERRORS_PER_GAME = 0.55
+LEAGUE_RPG = 4.60
+LEAGUE_OPS = 0.715
+LEAGUE_WRC_PLUS = 100.0
+LEAGUE_DER = 0.685
+
+EB_GAMES = 162
+MIN_GAMES_CONFIDENT = 40
+
+# --------------------------
+# Pitchers
+# --------------------------
+RECENT_DAYS = 15
+RECENT_STARTS = 3
+RECENT_GAMES = RECENT_DAYS

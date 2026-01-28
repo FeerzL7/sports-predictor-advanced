@@ -1,0 +1,58 @@
+sports-predictor-advanced/
+├── core/
+│   ├── odds/
+│   ├── bankroll/
+│   ├── ev/
+│   ├── confidence/
+│   ├── explanations/
+│   └── interfaces/
+│
+├── sports/
+│   └── baseball/
+│       └── mlb/
+│
+├── config/
+│   ├── sports.json
+│   └── leagues.json
+│
+├── main.py
+└── README.md
+
+
+from sports.baseball.mlb.adapter import MLBAdapter
+from tests.fixtures.mlb_event_sample import SAMPLE_MLB_EVENT
+
+def main():
+    adapter = MLBAdapter()
+
+    analysis = adapter.analyze_event(SAMPLE_MLB_EVENT)
+    picks = adapter.generate_picks(analysis)
+    print(picks)
+
+    if __name__ == "__main__":
+        main()
+
+
+python -m tests.manual.test_mlb_adapter_totals
+
+
+
+1️⃣ Normalizar edge de Moneyline
+(prob modelo vs prob implícita real)
+
+2️⃣ Agregar ajuste por localía
+(sutil, no bruto)
+
+3️⃣ Castigar LOW_SAMPLE en ML
+(igual que en totals)
+
+4️⃣ Unificar output ML + Totals
+(misma estructura, misma lógica de confianza)
+
+¿Localía o castigo por low sample primero?
+
+
+
+👉 Usar correlación ML ↔ Totals para stake sizing (Kelly fraccional)
+o
+👉 Runline usando la misma simulación Monte Carlo
