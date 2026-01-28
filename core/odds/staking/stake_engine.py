@@ -9,12 +9,21 @@ def calculate_stake(
     bankroll: float,
     totals_pick: dict | None = None
 ) -> dict:
-
-    odds = abs(pick["odds"]) / 100 + 1 if pick["odds"] < 0 else pick["odds"] / 100 + 1
+    
+    # ✨ NUEVO: odds ya vienen en decimal desde evaluate_moneyline_market
+    odds_decimal = pick.get("odds")
+    
+    # Validar que sean decimales válidos
+    if odds_decimal is None or odds_decimal <= 1.0:
+        pick["stake_pct"] = 0.0
+        pick["stake"] = 0.0
+        pick["stake_reason"] = "Invalid odds"
+        return pick
+    
     model_prob = pick["model_prob"]
 
     base_stake_pct = fractional_kelly(
-        odds=odds,
+        odds=odds_decimal,  # ✨ Ya es decimal
         model_prob=model_prob,
         fraction=0.25
     )

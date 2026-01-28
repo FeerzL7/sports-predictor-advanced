@@ -1,3 +1,5 @@
+# core/odds/providers/fake_provider.py
+
 from typing import Dict, Any
 from core.odds.providers.base import OddsProviderBase
 
@@ -14,8 +16,8 @@ class FakeOddsProvider(OddsProviderBase):
         total_line: float = 8.5,
         odds_over: float = 1.95,
         odds_under: float = 1.95,
-        ml_home: float = -135,
-        ml_away: float = +120,
+        ml_home: float = 1.74,     # ✨ CAMBIADO: Ahora decimal (antes -135)
+        ml_away: float = 2.20,     # ✨ CAMBIADO: Ahora decimal (antes +120)
     ):
         self.total_line = total_line
         self.odds_over = odds_over
@@ -34,7 +36,6 @@ class FakeOddsProvider(OddsProviderBase):
         projections = analysis.get("projections", {})
         teams = analysis.get("teams", {})
 
-        # Si no hay proyección, no inventamos
         if projections.get("total_runs") is None:
             return {}
 
@@ -45,13 +46,8 @@ class FakeOddsProvider(OddsProviderBase):
                 "odds_under": self.odds_under,
             },
             "moneyline": {
-                "home": {
-                    "team": teams.get("home"),
-                    "odds": self.ml_home,
-                },
-                "away": {
-                    "team": teams.get("away"),
-                    "odds": self.ml_away,
-                },
+                # ✨ NUEVO: Estructura plana (más simple)
+                "home": self.ml_home,
+                "away": self.ml_away,
             },
         }

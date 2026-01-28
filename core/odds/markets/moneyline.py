@@ -6,16 +6,14 @@ from core.odds.models.monte_carlo_ml import monte_carlo_moneyline
 from core.odds.models.ml_totals_correlation import (
     ml_totals_correlation_adjustment
 )
+from core.odds.utils.odds_converter import (
+    normalize_odds_to_decimal,
+    implied_probability_from_decimal
+)
 
 # =========================
 # Helpers
 # =========================
-
-def implied_probability_moneyline(odds: int) -> float:
-    if odds < 0:
-        return abs(odds) / (abs(odds) + 100)
-    return 100 / (odds + 100)
-
 
 def normalize_edge(model_prob: float, implied_prob: float) -> float:
     """
@@ -80,16 +78,25 @@ def evaluate_moneyline_market(
     prob_away = 1 - prob_home
 
     # =========================
-    # Odds
+    # Odds (NORMALIZAR A DECIMAL)
     # =========================
-    home_odds = market.get("home", {}).get("odds")
-    away_odds = market.get("away", {}).get("odds")
+    home_odds_raw = market.get("home", {}).get("odds") if isinstance(market.get("home"), dict) else market.get("home")
+    away_odds_raw = market.get("away", {}).get("odds") if isinstance(market.get("away"), dict) else market.get("away")
 
-    if home_odds is None or away_odds is None:
+    if home_odds_raw is None or away_odds_raw is None:
         return None
 
-    imp_home = implied_probability_moneyline(home_odds)
-    imp_away = implied_probability_moneyline(away_odds)
+    try:
+        # ✨ NUEVO: Normalizar a decimal (acepta americano o decimal)
+        home_odds_decimal = normalize_odds_to_decimal(home_odds_raw)
+        away_odds_decimal = normalize_odds_to_decimal(away_odds_raw)
+    except (ValueError, TypeError) as e:
+        # Si falla conversión, skip
+        return None
+
+    # ✨ NUEVO: Usar implied_probability_from_decimal
+    imp_home = implied_probability_from_decimal(home_odds_decimal)
+    imp_away = implied_probability_from_decimal(away_odds_decimal)
 
     edge_home = normalize_edge(prob_home, imp_home)
     edge_away = normalize_edge(prob_away, imp_away)
@@ -106,7 +113,8 @@ def evaluate_moneyline_market(
             "market": "moneyline",
             "side": "home",
             "team": analysis["teams"]["home"],
-            "odds": home_odds,
+            "odds": home_odds_decimal,  # ✨ Guardar como decimal
+            "odds_format": "decimal",    # ✨ NUEVO: Indicar formato
             "model_prob": round(prob_home, 3),
             "implied_prob": round(imp_home, 3),
             "edge": round(edge_home, 3),
@@ -122,7 +130,8 @@ def evaluate_moneyline_market(
             "market": "moneyline",
             "side": "away",
             "team": analysis["teams"]["away"],
-            "odds": away_odds,
+            "odds": away_odds_decimal,
+            "odds_format": "decimal",
             "model_prob": round(prob_away, 3),
             "implied_prob": round(imp_away, 3),
             "edge": round(edge_away, 3),
