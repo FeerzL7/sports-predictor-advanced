@@ -77,3 +77,13 @@
 2026-01-28 01:14:48 | core.validators.pick_validator | INFO | Pick validation OK (with warnings): moneyline | Yankees | Warnings: ['Edge suspiciously high: 30.0% (check data quality)', 'High edge (30.0%) requires higher confidence (current: 55.0%, required: 60.0%)', 'Edge mismatch: calculated=0.159, provided=0.300', 'High edge (30.0%) with low confidence (55.0%)']
 2026-01-28 01:14:48 | core.validators.projection_validator | WARNING | Invalid projection: ['Home runs too low: 0.2 < 0.5', 'Away runs too low: 0.3 < 0.5', 'Total runs too low: 0.5 < 1.0']
 2026-01-28 01:14:48 | core.validators.projection_validator | INFO | Projection warnings: ['Home projection far from average: 12.0 (avg: 4.6)', 'Away projection far from average: 10.5 (avg: 4.6)']
+2026-01-28 01:37:00 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=4.0%, min_confidence=65.0%, max_stake=3.0%
+2026-01-28 01:37:00 | core.validators.pick_validator | WARNING | Pick validation FAILED: moneyline | Yankees | Errors: ['Edge too low: 2.10% < 4.0%', 'Confidence too low: 58.0% < 65.0%']
+2026-01-28 01:37:00 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=3.0%, min_confidence=60.0%, max_stake=5.0%
+2026-01-28 01:37:00 | core.validators.pick_validator | WARNING | Pick validation FAILED: moneyline | Yankees | Errors: ['Edge too low: 2.10% < 3.0%', 'Confidence too low: 58.0% < 60.0%']
+2026-01-28 01:37:00 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=2.0%, min_confidence=55.0%, max_stake=5.0%
+2026-01-28 01:37:22 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=4.0%, min_confidence=65.0%, max_stake=3.0%
+2026-01-28 01:37:22 | core.validators.pick_validator | WARNING | Pick validation FAILED: moneyline | Yankees | Errors: ['Edge too low: 2.10% < 4.0%', 'Confidence too low: 58.0% < 65.0%']
+2026-01-28 01:37:22 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=3.0%, min_confidence=60.0%, max_stake=5.0%
+2026-01-28 01:37:22 | core.validators.pick_validator | WARNING | Pick validation FAILED: moneyline | Yankees | Errors: ['Edge too low: 2.10% < 3.0%', 'Confidence too low: 58.0% < 60.0%']
+2026-01-28 01:37:22 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=2.0%, min_confidence=55.0%, max_stake=5.0%

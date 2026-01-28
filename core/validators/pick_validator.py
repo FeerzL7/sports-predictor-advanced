@@ -12,7 +12,7 @@ Validaciones:
 - No duplicados
 """
 
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Tuple
 from datetime import datetime
 
 from core.utils.logger import setup_logger
@@ -21,52 +21,6 @@ from config.settings import PickValidationConfig
 logger = setup_logger(__name__)
 
 
-# =========================
-# CONFIGURACIÓN
-# =========================
-
-# Validaciones de edge
-MIN_EDGE_THRESHOLD = 0.02           # 2% mínimo
-MAX_EDGE_WARNING = 0.25             # 25% sospechoso
-
-# Validaciones de confidence
-MIN_CONFIDENCE_THRESHOLD = 0.55     # 55% mínimo
-MIN_CONFIDENCE_HIGH_EDGE = 0.60     # 60% si edge > 10%
-
-# Validaciones de stake
-MIN_STAKE_PCT = 0.001               # 0.1% mínimo
-MAX_STAKE_PCT = 0.05                # 5% máximo (Kelly cap)
-MAX_STAKE_AMOUNT = 500.0            # $500 máximo por pick
-
-# Validaciones de odds
-MIN_ODDS_DECIMAL = 1.01             # Odds mínimos realistas
-MAX_ODDS_DECIMAL = 50.0             # Odds máximos realistas
-
-# Validaciones de probabilidad
-MIN_MODEL_PROB = 0.05               # 5% mínimo
-MAX_MODEL_PROB = 0.95               # 95% máximo
-
-class PickValidator:
-    """
-    Validador de picks.
-    """
-    
-    def __init__(
-        self,
-        min_edge: float = None,  # ✨ Cambiado
-        min_confidence: float = None,  # ✨ Cambiado
-        max_stake_pct: float = None  # ✨ Cambiado
-    ):
-        # ✨ NUEVO: Usar config si no se proveen valores
-        self.min_edge = min_edge or PickValidationConfig.MIN_EDGE
-        self.min_confidence = min_confidence or PickValidationConfig.MIN_CONFIDENCE
-        self.max_stake_pct = max_stake_pct or PickValidationConfig.MAX_STAKE_PCT
-        
-        logger.info(
-            f"PickValidator initialized: min_edge={self.min_edge*100:.1f}%, "
-            f"min_confidence={self.min_confidence*100:.1f}%"
-        )
-        
 # =========================
 # VALIDATION RESULT
 # =========================
@@ -143,17 +97,37 @@ class PickValidator:
     
     def __init__(
         self,
-        min_edge: float = MIN_EDGE_THRESHOLD,
-        min_confidence: float = MIN_CONFIDENCE_THRESHOLD,
-        max_stake_pct: float = MAX_STAKE_PCT
+        min_edge: float = None,
+        min_confidence: float = None,
+        max_stake_pct: float = None
     ):
-        self.min_edge = min_edge
-        self.min_confidence = min_confidence
-        self.max_stake_pct = max_stake_pct
+        """
+        Inicializa validador.
+        
+        Args:
+            min_edge: Edge mínimo (default: usa config)
+            min_confidence: Confidence mínimo (default: usa config)
+            max_stake_pct: Stake máximo % (default: usa config)
+        """
+        # Usar config centralizada si no se proveen valores
+        self.min_edge = min_edge if min_edge is not None else PickValidationConfig.MIN_EDGE
+        self.min_confidence = min_confidence if min_confidence is not None else PickValidationConfig.MIN_CONFIDENCE
+        self.max_stake_pct = max_stake_pct if max_stake_pct is not None else PickValidationConfig.MAX_STAKE_PCT
+        
+        # Límites absolutos (no dependen de perfil)
+        self.max_edge_warning = PickValidationConfig.MAX_EDGE_WARNING
+        self.min_confidence_high_edge = PickValidationConfig.MIN_CONFIDENCE_HIGH_EDGE
+        self.min_stake_pct = 0.001  # 0.1% mínimo
+        self.max_stake_amount = PickValidationConfig.MAX_STAKE_AMOUNT
+        self.min_odds = PickValidationConfig.MIN_ODDS_DECIMAL
+        self.max_odds = PickValidationConfig.MAX_ODDS_DECIMAL
+        self.min_model_prob = PickValidationConfig.MIN_MODEL_PROB
+        self.max_model_prob = PickValidationConfig.MAX_MODEL_PROB
         
         logger.info(
-            f"PickValidator initialized: min_edge={min_edge*100:.1f}%, "
-            f"min_confidence={min_confidence*100:.1f}%"
+            f"PickValidator initialized: min_edge={self.min_edge*100:.1f}%, "
+            f"min_confidence={self.min_confidence*100:.1f}%, "
+            f"max_stake={self.max_stake_pct*100:.1f}%"
         )
     
     def validate(self, pick: Dict[str, Any]) -> ValidationResult:
@@ -233,7 +207,7 @@ class PickValidator:
             result.add_error(f"Negative edge: {edge*100:.2f}%")
         
         # Edge sospechosamente alto
-        if edge > MAX_EDGE_WARNING:
+        if edge > self.max_edge_warning:
             result.add_warning(
                 f"Edge suspiciously high: {edge*100:.1f}% (check data quality)"
             )
@@ -254,10 +228,10 @@ class PickValidator:
             )
         
         # Confidence más alto para edges grandes
-        if edge > 0.10 and confidence < MIN_CONFIDENCE_HIGH_EDGE:
+        if edge > 0.10 and confidence < self.min_confidence_high_edge:
             result.add_warning(
                 f"High edge ({edge*100:.1f}%) requires higher confidence "
-                f"(current: {confidence*100:.1f}%, required: {MIN_CONFIDENCE_HIGH_EDGE*100:.1f}%)"
+                f"(current: {confidence*100:.1f}%, required: {self.min_confidence_high_edge*100:.1f}%)"
             )
         
         # Confidence fuera de rango [0, 1]
@@ -273,11 +247,11 @@ class PickValidator:
             return
         
         # Odds demasiado bajos
-        if odds < MIN_ODDS_DECIMAL:
-            result.add_error(f"Odds too low: {odds} < {MIN_ODDS_DECIMAL}")
+        if odds < self.min_odds:
+            result.add_error(f"Odds too low: {odds} < {self.min_odds}")
         
         # Odds demasiado altos
-        if odds > MAX_ODDS_DECIMAL:
+        if odds > self.max_odds:
             result.add_warning(f"Odds very high: {odds} (longshot)")
     
     def _validate_probabilities(self, pick: Dict, result: ValidationResult):
@@ -288,9 +262,9 @@ class PickValidator:
         
         if model_prob is not None:
             # Rango válido
-            if not (MIN_MODEL_PROB <= model_prob <= MAX_MODEL_PROB):
+            if not (self.min_model_prob <= model_prob <= self.max_model_prob):
                 result.add_error(
-                    f"Model probability out of range [{MIN_MODEL_PROB}, {MAX_MODEL_PROB}]: {model_prob}"
+                    f"Model probability out of range [{self.min_model_prob}, {self.max_model_prob}]: {model_prob}"
                 )
         
         if implied_prob is not None:
@@ -318,7 +292,7 @@ class PickValidator:
         
         if stake_pct is not None:
             # Stake mínimo
-            if stake_pct < MIN_STAKE_PCT:
+            if stake_pct < self.min_stake_pct:
                 result.add_warning(f"Stake very small: {stake_pct*100:.2f}%")
             
             # Stake máximo (Kelly cap)
@@ -333,9 +307,9 @@ class PickValidator:
                 result.add_error(f"Negative stake: ${stake_amount}")
             
             # Stake máximo absoluto
-            if stake_amount > MAX_STAKE_AMOUNT:
+            if stake_amount > self.max_stake_amount:
                 result.add_warning(
-                    f"Stake very high: ${stake_amount:.2f} > ${MAX_STAKE_AMOUNT}"
+                    f"Stake very high: ${stake_amount:.2f} > ${self.max_stake_amount}"
                 )
     
     # =========================
