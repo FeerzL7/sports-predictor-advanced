@@ -7,12 +7,19 @@ from core.odds.providers.odds_api_provider import OddsAPIProvider
 from core.odds.markets.totals import evaluate_totals_market
 from core.odds.markets.moneyline import evaluate_moneyline_market
 
+from core.validators.pick_validator import PickValidator, validate_picks_batch
+from core.validators.projection_validator import ProjectionValidator
+
 from sports.baseball.mlb.analysis.pitching import analizar_pitchers
 from sports.baseball.mlb.analysis.offense import analizar_ofensiva
 from sports.baseball.mlb.analysis.defense import analizar_defensiva
 from sports.baseball.mlb.analysis.context import analizar_contexto
 from sports.baseball.mlb.analysis.h2h import analizar_h2h
 from sports.baseball.mlb.analysis.projections import proyectar_totales
+
+from core.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class MLBAdapter(SportAdapter):
@@ -22,6 +29,7 @@ class MLBAdapter(SportAdapter):
     - Inyecta odds vía OddsProvider (real o fake)
     - Devuelve analysis normalizado
     - El core decide los picks (Totals / Moneyline)
+    - NUEVO: Valida picks antes de devolverlos
     """
 
     # =========================
@@ -30,7 +38,8 @@ class MLBAdapter(SportAdapter):
     def __init__(
         self,
         odds_provider: OddsProviderBase | None = None,
-        odds_api_key: str | None = None
+        odds_api_key: str | None = None,
+        validate_picks: bool = True  # ✨ NUEVO
     ):
         if odds_provider:
             self.odds_provider = odds_provider
@@ -38,6 +47,15 @@ class MLBAdapter(SportAdapter):
             self.odds_provider = OddsAPIProvider(odds_api_key)
         else:
             self.odds_provider = None
+        
+        #NUEVO: Validadores
+        self.validate_picks = validate_picks
+        if validate_picks:
+            self.pick_validator = PickValidator()
+            self.projection_validator = ProjectionValidator()
+            logger.info("MLBAdapter initialized with pick validation ENABLED")
+        else:
+            logger.warning("MLBAdapter initialized with pick validation DISABLED")
 
     # =========================
     # Metadata
@@ -70,6 +88,15 @@ class MLBAdapter(SportAdapter):
 
         analysis = self._normalize_analysis(partidos[0])
 
+        # NUEVO: Validar proyecciones
+        if self.validate_picks:
+            if not self.projection_validator.validate_analysis(analysis):
+                logger.warning(
+                    f"Invalid projections for {analysis.get('teams', {}).get('home')} vs "
+                    f"{analysis.get('teams', {}).get('away')}"
+                )
+                # Continuar de todos modos, pero se loggeará
+
         # =========================
         # Odds (provider)
         # =========================
@@ -99,6 +126,19 @@ class MLBAdapter(SportAdapter):
         if ml_pick:
             picks.append(ml_pick)
 
+        #NUEVO: Validar picks
+        if self.validate_picks and picks:
+            valid_picks, invalid_picks = validate_picks_batch(picks, self.pick_validator)
+            
+            # Loggear picks inválidos
+            for pick, validation_result in invalid_picks:
+                logger.error(
+                    f"Pick rejected: {pick.get('market')} | {pick.get('team')} | "
+                    f"Errors: {validation_result.errors}"
+                )
+            
+            return valid_picks
+        
         return picks
 
     # =========================
@@ -130,7 +170,6 @@ class MLBAdapter(SportAdapter):
                 "pitching": {
                     "home": p.get("home_stats") or {},
                     "away": p.get("away_stats") or {},
-                    # ✨ NUEVO: Agregar bullpen
                     "home_bullpen": p.get("home_bullpen") or {},
                     "away_bullpen": p.get("away_bullpen") or {},
                 },
