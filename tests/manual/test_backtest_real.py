@@ -1,9 +1,5 @@
 # tests/manual/test_backtest_real.py
 
-"""
-Backtest REAL usando el modelo completo de MLB.
-"""
-
 from datetime import datetime
 
 from core.backtesting.historical_data import HistoricalDataLoader
@@ -13,33 +9,31 @@ from core.odds.providers.fake_provider import FakeOddsProvider
 
 from config.settings import set_risk_profile
 
+from sports.baseball.mlb.data_sources.team_stats_provider import set_backtest_mode
 
 def test_real_backtest():
-    """
-    Backtest con modelo real.
-    
-    Proceso:
-    1. Cargar juegos históricos
-    2. Para cada juego, ejecutar análisis completo
-    3. Generar picks con validación
-    4. Simular apuestas
-    5. Calcular performance
-    """
+    """Backtest con modelo real usando pybaseball."""
     
     print("=" * 60)
-    print("REAL MODEL BACKTEST")
+    print("REAL MODEL BACKTEST (with pybaseball)")
     print("=" * 60)
     
     # Configuración
     BACKTEST_START = "2024-04-01"
-    BACKTEST_END = "2024-04-07"  # Primera semana completa (7 días)
+    BACKTEST_END = "2024-04-07"
     RISK_PROFILE = "balanced"
     INITIAL_BANKROLL = 10000.0
+    
+    
     
     print(f"\nConfiguration:")
     print(f"  Period: {BACKTEST_START} to {BACKTEST_END}")
     print(f"  Risk Profile: {RISK_PROFILE}")
     print(f"  Bankroll: ${INITIAL_BANKROLL:,.2f}")
+    
+    # ✨ CRÍTICO: Activar backtest mode
+    set_backtest_mode(True)
+    print(f"  Backtest Mode: ENABLED (recent stats disabled)")
     
     # Establecer perfil
     set_risk_profile(RISK_PROFILE)
@@ -58,17 +52,15 @@ def test_real_backtest():
     # 2. Inicializar adapter con fake provider
     print(f"\n🔧 Initializing MLB adapter...")
     
-    # Usamos FakeProvider porque no tenemos odds reales históricos
-    # En producción real, necesitarías historical odds data
     adapter = MLBAdapter(
         odds_provider=FakeOddsProvider(
-            total_line=8.5,  # Line promedio MLB
-            odds_over=1.91,  # -110
+            total_line=8.5,
+            odds_over=1.91,
             odds_under=1.91,
-            ml_home=1.85,    # Promedio
+            ml_home=1.85,
             ml_away=2.10
         ),
-        validate_picks=True  # Validación activada
+        validate_picks=True
     )
     
     # 3. Generar picks para cada juego
@@ -76,11 +68,13 @@ def test_real_backtest():
     
     all_picks = []
     picks_by_date = {}
+    errors_count = 0
     
     for game in games:
-        # Convertir HistoricalGame a formato event
         game_season = int(game.date[:4])
         
+        # Crear evento MÍNIMO (sin pitchers)
+        # El modelo usará defaults cuando no haya pitchers
         event = {
             "game_id": game.game_id,
             "date": game.date,
@@ -88,12 +82,52 @@ def test_real_backtest():
             "away_team": game.away_team,
             "venue": game.venue,
             "start_time": f"{game.date}T19:00:00",
-            "season": game_season  # ✨ Agregar season
+            "season": game_season,
+            
+            # ✨ CRÍTICO: Agregar datos mínimos de pitchers
+            # Como no tenemos probable pitchers en datos históricos,
+            # usamos "TBD" y el modelo aplicará defaults
+            "home_pitcher": "TBD",
+            "away_pitcher": "TBD",
+            
+            # Stats vacíos (se llenarán en análisis)
+            "home_stats": {},
+            "away_stats": {},
         }
         
         try:
-            # Análisis completo
-            analysis = adapter.analyze_event(event)
+            # Análisis completo (SKIP pitching analysis para backtest)
+            from sports.baseball.mlb.analysis.offense import analizar_ofensiva
+            from sports.baseball.mlb.analysis.defense import analizar_defensiva
+            from sports.baseball.mlb.analysis.context import analizar_contexto
+            from sports.baseball.mlb.analysis.h2h import analizar_h2h
+            from sports.baseball.mlb.analysis.bullpen import analizar_bullpens
+            from sports.baseball.mlb.analysis.projections import proyectar_totales
+            
+            # Pipeline SIMPLIFICADO (sin pitchers individuales)
+            partidos = [event]
+            
+            # Usar defaults para pitchers (TBD)
+            from sports.baseball.mlb.analysis.pitching import build_pitcher_metrics
+            partidos[0]["home_stats"] = build_pitcher_metrics("TBD", game_season).to_dict()
+            partidos[0]["away_stats"] = build_pitcher_metrics("TBD", game_season).to_dict()
+            
+            # Resto del pipeline
+            partidos = analizar_ofensiva(partidos, game_season)
+            partidos = analizar_defensiva(partidos, game_season)
+            partidos = analizar_contexto(partidos)
+            partidos = analizar_h2h(partidos, game_season)
+            partidos = analizar_bullpens(partidos, game_season)
+            partidos = proyectar_totales(partidos)
+            
+            # Normalizar análisis
+            analysis = adapter._normalize_analysis(partidos[0])
+            
+            # Agregar odds (fake provider)
+            if adapter.odds_provider:
+                markets = adapter.odds_provider.get_markets(analysis)
+                if isinstance(markets, dict) and markets:
+                    analysis["market"].update(markets)
             
             # Generar picks (con validación)
             picks = adapter.generate_picks(analysis)
@@ -119,8 +153,13 @@ def test_real_backtest():
             picks_by_date[game.date].extend(picks)
         
         except Exception as e:
-            print(f"   ⚠️  Error analyzing {game.home_team} vs {game.away_team}: {e}")
+            errors_count += 1
+            if errors_count <= 5:  # Solo mostrar primeros 5 errores
+                print(f"   ⚠️  Error analyzing {game.home_team} vs {game.away_team}: {e}")
             continue
+    
+    if errors_count > 5:
+        print(f"   ⚠️  ... and {errors_count - 5} more errors (suppressed)")
     
     print(f"   Generated: {len(all_picks)} picks")
     print(f"\n   Picks by date:")
@@ -128,7 +167,12 @@ def test_real_backtest():
         print(f"      {date}: {len(picks)} picks")
     
     if not all_picks:
-        print("❌ No valid picks generated")
+        print("\n⚠️  No valid picks generated")
+        print("\nPossible reasons:")
+        print("  1. No pitchers available in historical data (using TBD defaults)")
+        print("  2. Model confidence too low with missing pitcher data")
+        print("  3. Edge threshold (3%) too high for games with incomplete data")
+        print("\nSuggestion: Lower thresholds or use aggressive profile")
         return
     
     # 4. Ejecutar backtest

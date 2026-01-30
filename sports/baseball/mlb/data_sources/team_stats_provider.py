@@ -1,10 +1,25 @@
 # sports/baseball/mlb/data_sources/team_stats_provider.py
 
 from typing import Dict, Any, Optional
+from datetime import datetime
 from statsapi import lookup_team
 
 from sports.baseball.mlb.data_sources.mlb_api_wrapper import mlb_api_get
 from sports.baseball.mlb.data_sources.statsapi_client import safe_int, safe_float
+
+# ✨ NUEVO: Backtest mode
+BACKTEST_MODE = False
+
+
+def set_backtest_mode(enabled: bool):
+    """Activa/desactiva backtest mode."""
+    global BACKTEST_MODE
+    BACKTEST_MODE = enabled
+
+
+def is_historical_season(season: int) -> bool:
+    """Verifica si es temporada histórica."""
+    return season < datetime.now().year
 
 # =========================
 # TEAM ID
@@ -31,10 +46,18 @@ def get_team_id(team_name: str) -> Optional[int]:
 # SEASON OFFENSE STATS
 # =========================
 
-def get_team_season_stats(team_id: int, season: int = 2024) -> Dict[str, Any]:
+def get_team_season_stats(team_id: int, season: int = 2024, team_name: str = None) -> Dict[str, Any]:
     """
     Stats ofensivos de temporada (season).
+    
+    Args:
+        team_id: ID del equipo (StatsAPI)
+        season: Año
+        team_name: Nombre completo (para pybaseball)
     """
+
+    
+    # Original: StatsAPI
     try:
         resp = mlb_api_get(
             "team_stats",
@@ -87,7 +110,11 @@ def get_team_season_stats(team_id: int, season: int = 2024) -> Dict[str, Any]:
 def get_team_split_stats(team_id: int, hand: str, season: int = 2024) -> Dict[str, Any]:
     """
     Stats ofensivos vs pitchers derechos o zurdos.
+    
+    NOTA: pybaseball NO tiene splits vs L/R a nivel de equipo.
+    Solo funciona con StatsAPI.
     """
+    
     split_key = "vsRhp" if hand.upper() == "R" else "vsLhp"
 
     try:
@@ -133,7 +160,23 @@ def get_team_split_stats(team_id: int, hand: str, season: int = 2024) -> Dict[st
 def get_team_last_x_games(team_id: int, window: int, season: int = 2024) -> Dict[str, Any]:
     """
     Forma reciente del equipo (last X games).
+    
+    NOTA: Solo funciona para temporada actual en StatsAPI.
     """
+    
+    # ✨ NUEVO: Deshabilitar en backtest mode o temporadas históricas
+    if BACKTEST_MODE or is_historical_season(season):
+        return {
+            "available": False,
+            "window": window,
+            "runsPerGame": None,
+            "ops": None,
+            "games": None,
+            "confidence": 0.3,
+            "source": "backtest_disabled"
+        }
+    
+    # Original (solo para temporada actual)
     try:
         resp = mlb_api_get(
             "team_stats",

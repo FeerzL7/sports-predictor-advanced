@@ -135,3 +135,16 @@ MIN_GAMES_CONFIDENT = 40
 RECENT_DAYS = 15
 RECENT_STARTS = 3
 RECENT_GAMES = RECENT_DAYS
+
+# Al final de las League Averages, agregar:
+
+# Bullpen averages
+LEAGUE_BULLPEN_ERA = 4.20
+LEAGUE_BULLPEN_K9 = 9.20
+LEAGUE_BULLPEN_WHIP = 1.28
+
+# Bullpen minimums
+MIN_BULLPEN_IP = 30.0
+
+# Bullpen recent window
+RECENT_DAYS_BULLPEN = 7

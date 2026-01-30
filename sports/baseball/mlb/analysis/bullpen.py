@@ -160,6 +160,9 @@ def _get_bullpen_stats_recent(team_id: int, season: int, days: int = RECENT_DAYS
     Stats recientes del bullpen (últimos N días).
     Usa last7Days o similar.
     """
+    from datetime import datetime
+    if season < datetime.now().year:
+        return {"available": False}
     
     try:
         resp = mlb_api_get(
@@ -167,7 +170,7 @@ def _get_bullpen_stats_recent(team_id: int, season: int, days: int = RECENT_DAYS
             {
                 "teamId": team_id,
                 "group": "pitching",
-                "stats": "last7Days"  # StatsAPI tiene last7Days, last14Days, last30Days
+                "stats": "last7Days"
             },
             season=season
         )

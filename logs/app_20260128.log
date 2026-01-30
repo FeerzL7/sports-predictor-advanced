@@ -12586,3 +12586,269 @@ NoneType: None
 --Required parameters for the team_stats endpoint: [['season', 'group']]. 
 --Note: If there are multiple sets in the required parameter list, you can choose any of the sets.
 --Endpoint note: Use meta('statGroups') to look up valid values for group, meta('statTypes') for valid values for stats, and meta('situationCodes') for valid values for sitCodes. Use sitCodes with stats=statSplits.
+2026-01-28 20:26:43 | core.backtesting.historical_data | INFO | Loading historical data: 2024-04-01 to 2024-04-07
+2026-01-28 20:26:43 | core.backtesting.historical_data | INFO | Loading games for 2024-04-01
+2026-01-28 20:26:46 | core.backtesting.historical_data | INFO | Loaded 14 completed games for 2024-04-01
+2026-01-28 20:26:47 | core.backtesting.historical_data | INFO | Loading games for 2024-04-02
+2026-01-28 20:26:47 | core.backtesting.historical_data | INFO | Loaded 14 completed games for 2024-04-02
+2026-01-28 20:26:47 | core.backtesting.historical_data | INFO | Loading games for 2024-04-03
+2026-01-28 20:26:48 | core.backtesting.historical_data | INFO | Loaded 15 completed games for 2024-04-03
+2026-01-28 20:26:48 | core.backtesting.historical_data | INFO | Loading games for 2024-04-04
+2026-01-28 20:26:48 | core.backtesting.historical_data | INFO | Loaded 6 completed games for 2024-04-04
+2026-01-28 20:26:49 | core.backtesting.historical_data | INFO | Loading games for 2024-04-05
+2026-01-28 20:26:49 | core.backtesting.historical_data | INFO | Loaded 13 completed games for 2024-04-05
+2026-01-28 20:26:49 | core.backtesting.historical_data | INFO | Loading games for 2024-04-06
+2026-01-28 20:26:50 | core.backtesting.historical_data | INFO | Loaded 15 completed games for 2024-04-06
+2026-01-28 20:26:50 | core.backtesting.historical_data | INFO | Loading games for 2024-04-07
+2026-01-28 20:26:50 | core.backtesting.historical_data | INFO | Loaded 15 completed games for 2024-04-07
+2026-01-28 20:26:51 | core.backtesting.historical_data | INFO | Total games loaded: 92
+2026-01-28 20:26:51 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=3.0%, min_confidence=60.0%, max_stake=5.0%
+2026-01-28 20:26:51 | sports.baseball.mlb.adapter | INFO | MLBAdapter initialized with pick validation ENABLED
+2026-01-28 20:29:26 | core.backtesting.historical_data | INFO | Loading historical data: 2024-04-01 to 2024-04-07
+2026-01-28 20:29:26 | core.backtesting.historical_data | INFO | Loading games for 2024-04-01
+2026-01-28 20:29:28 | core.backtesting.historical_data | INFO | Loaded 14 completed games for 2024-04-01
+2026-01-28 20:29:29 | core.backtesting.historical_data | INFO | Loading games for 2024-04-02
+2026-01-28 20:29:29 | core.backtesting.historical_data | INFO | Loaded 14 completed games for 2024-04-02
+2026-01-28 20:29:29 | core.backtesting.historical_data | INFO | Loading games for 2024-04-03
+2026-01-28 20:29:30 | core.backtesting.historical_data | INFO | Loaded 15 completed games for 2024-04-03
+2026-01-28 20:29:30 | core.backtesting.historical_data | INFO | Loading games for 2024-04-04
+2026-01-28 20:29:30 | core.backtesting.historical_data | INFO | Loaded 6 completed games for 2024-04-04
+2026-01-28 20:29:30 | core.backtesting.historical_data | INFO | Loading games for 2024-04-05
+2026-01-28 20:29:31 | core.backtesting.historical_data | INFO | Loaded 13 completed games for 2024-04-05
+2026-01-28 20:29:31 | core.backtesting.historical_data | INFO | Loading games for 2024-04-06
+2026-01-28 20:29:31 | core.backtesting.historical_data | INFO | Loaded 15 completed games for 2024-04-06
+2026-01-28 20:29:32 | core.backtesting.historical_data | INFO | Loading games for 2024-04-07
+2026-01-28 20:29:32 | core.backtesting.historical_data | INFO | Loaded 15 completed games for 2024-04-07
+2026-01-28 20:29:32 | core.backtesting.historical_data | INFO | Total games loaded: 92
+2026-01-28 20:29:32 | core.validators.pick_validator | INFO | PickValidator initialized: min_edge=3.0%, min_confidence=60.0%, max_stake=5.0%
+2026-01-28 20:29:32 | sports.baseball.mlb.adapter | INFO | MLBAdapter initialized with pick validation ENABLED
+2026-01-28 20:29:35 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:35 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:36 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:36 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 145, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:29:36 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:37 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:37 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:37 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 145, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:29:39 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:39 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:41 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:41 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 144, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:29:41 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:42 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:42 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:42 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 144, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:29:48 | sports.baseball.mlb.analysis.h2h | INFO | No H2H data available for Chicago White Sox vs Atlanta Braves
+2026-01-28 20:29:50 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:29:50 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:29:51 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:29:51 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/145/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 145, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:29:52 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:29:54 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:29:54 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:29:54 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/144/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 144, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:29:55 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:56 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:56 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:29:56 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 112, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:29:57 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:57 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:58 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:29:58 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 112, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:01 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:01 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:02 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:02 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 115, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:02 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:02 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:03 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:03 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 115, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:10 | sports.baseball.mlb.analysis.h2h | INFO | No H2H data available for Chicago Cubs vs Colorado Rockies
+2026-01-28 20:30:11 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:13 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:13 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:13 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/112/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 112, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:14 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:15 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:15 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:15 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/115/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 115, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:17 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:17 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:18 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:18 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 120, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:19 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:20 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:20 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:20 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 120, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:22 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:22 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:23 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:23 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 134, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:23 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:23 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:25 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:25 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 134, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:28 | sports.baseball.mlb.analysis.h2h | INFO | No H2H data available for Washington Nationals vs Pittsburgh Pirates
+2026-01-28 20:30:29 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:30 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:30 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:30 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/120/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 120, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:33 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:34 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:34 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:34 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/134/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 134, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:36 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:36 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:36 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:36 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 110, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:37 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:38 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:39 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:39 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 110, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:40 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:41 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:41 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:41 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 118, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:42 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:42 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:43 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:43 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 118, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:47 | sports.baseball.mlb.analysis.h2h | INFO | No H2H data available for Baltimore Orioles vs Kansas City Royals
+2026-01-28 20:30:48 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:49 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:49 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:49 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/110/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 110, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:51 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:52 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:52 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:30:52 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/118/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 118, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:54 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:54 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:55 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:55 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 143, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:55 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:56 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:56 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:30:56 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 143, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:58 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:59 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:59 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:30:59 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 113, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:30:59 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:00 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:00 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:00 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 113, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:04 | sports.baseball.mlb.analysis.h2h | INFO | No H2H data available for Philadelphia Phillies vs Cincinnati Reds
+2026-01-28 20:31:06 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:06 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:07 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:07 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/143/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 143, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:10 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:10 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:11 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:11 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/113/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 113, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:12 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:12 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:13 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:13 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 146, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:13 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:15 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:15 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:15 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 146, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:17 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:17 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:17 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:17 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 108, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:18 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:18 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:19 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:19 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?stats=last30Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 108, 'stats': 'last30Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:23 | sports.baseball.mlb.analysis.h2h | INFO | No H2H data available for Miami Marlins vs Los Angeles Angels
+2026-01-28 20:31:24 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:25 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:25 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:25 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/146/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 146, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:26 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:29 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:30 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?group=pitching&stats=last7Days&season=2024
+2026-01-28 20:31:30 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/108/stats?group=pitching&stats=last7Days&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 108, 'group': 'pitching', 'stats': 'last7Days', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:31 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/139/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:32 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/139/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:32 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 3 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/139/stats?stats=last14Games&group=hitting&season=2024
+2026-01-28 20:31:32 | sports.baseball.mlb.data_sources.statsapi_client | ERROR | ERROR: HTTPError: 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/139/stats?stats=last14Games&group=hitting&season=2024
+Context: {'endpoint': 'team_stats', 'params': {'teamId': 139, 'stats': 'last14Games', 'group': 'hitting', 'season': 2024}, 'retries': 2}
+NoneType: None
+2026-01-28 20:31:33 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 1 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/139/stats?stats=last30Games&group=hitting&season=2024
+2026-01-28 20:31:33 | sports.baseball.mlb.data_sources.statsapi_client | WARNING | StatsAPI attempt 2 failed: team_stats - 400 Client Error: Bad Request for url: https://statsapi.mlb.com/api/v1/teams/139/stats?stats=last30Games&group=hitting&season=2024

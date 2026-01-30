@@ -85,7 +85,7 @@ def empirical_bayes_adjust(
 # =========================
 # CORE
 # =========================
-def _build_offense_metrics(team: str, season: int = None) -> TeamOffenseMetrics:
+def _build_offense_metrics(team: str, season: int = None, game_date: str = None) -> TeamOffenseMetrics:
     """Construye métricas ofensivas."""
     
     if season is None:
@@ -100,7 +100,7 @@ def _build_offense_metrics(team: str, season: int = None) -> TeamOffenseMetrics:
         "low_sample": False,
         "wrc_proxy": True
     }
-
+    
     missing = []
 
     if team_id is None:
@@ -137,7 +137,7 @@ def _build_offense_metrics(team: str, season: int = None) -> TeamOffenseMetrics:
     # -------------------------
     # Season (con season param)
     # -------------------------
-    st = get_team_season_stats(team_id, season)
+    st = get_team_season_stats(team_id, season, team_name=team)
 
     games = int(safe_float(st.get("gamesPlayed"), 0))
     rpg = safe_float(st.get("runsPerGame"), LEAGUE_RPG)
@@ -174,8 +174,8 @@ def _build_offense_metrics(team: str, season: int = None) -> TeamOffenseMetrics:
     # -------------------------
     # Recent (con season param)
     # -------------------------
-    r14 = get_team_last_x_games(team_id, 14, season)
-    r30 = get_team_last_x_games(team_id, 30, season)
+    r14 = get_team_last_x_games(team_id, 14, season, team_name=team, end_date=game_date)
+    r30 = get_team_last_x_games(team_id, 30, season, team_name=team, end_date=game_date)
 
     if not r14["available"] and not r30["available"]:
         flags["no_recent"] = True
@@ -259,9 +259,10 @@ def analizar_ofensiva(partidos: List[Dict[str, Any]], season: int = None) -> Lis
     for p in partidos:
         home = p["home_team"]
         away = p["away_team"]
+        game_date = p.get("date")  # NUEVO
 
-        home_off = _build_offense_metrics(home, season).to_dict()
-        away_off = _build_offense_metrics(away, season).to_dict()
+        home_off = _build_offense_metrics(home, season, game_date).to_dict()
+        away_off = _build_offense_metrics(away, season, game_date).to_dict()
 
         warnings = []
         if home_off["flags"]["low_sample"]:
