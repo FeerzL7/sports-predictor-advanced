@@ -125,6 +125,8 @@ def _get_bullpen_stats_team_aggregate(team_id: int, season: int) -> Dict[str, An
 def _get_bullpen_stats_high_leverage(team_id: int, season: int) -> Dict[str, Any]:
     """
     Intenta obtener stats de high leverage situations.
+    
+    NOTA: Puede no estar disponible en StatsAPI público.
     """
     
     try:
@@ -158,10 +160,14 @@ def _get_bullpen_stats_high_leverage(team_id: int, season: int) -> Dict[str, Any
 def _get_bullpen_stats_recent(team_id: int, season: int, days: int = RECENT_DAYS_BULLPEN) -> Dict[str, Any]:
     """
     Stats recientes del bullpen (últimos N días).
-    Usa last7Days o similar.
+    
+    NOTA: Solo funciona para temporada actual.
+    Para backtest histórico, devuelve unavailable.
     """
-    from datetime import datetime
+    
+    # ✨ CRÍTICO: Deshabilitar para temporadas históricas
     if season < datetime.now().year:
+        logger.debug(f"Skipping recent bullpen stats for historical season {season}")
         return {"available": False}
     
     try:
@@ -191,7 +197,8 @@ def _get_bullpen_stats_recent(team_id: int, season: int, days: int = RECENT_DAYS
             "ip": bullpen_ip_est
         }
     
-    except Exception:
+    except Exception as e:
+        logger.debug(f"Recent bullpen stats unavailable: {e}")
         return {"available": False}
 
 
@@ -207,7 +214,7 @@ def _build_bullpen_metrics(team: str, season: int = None) -> BullpenMetrics:
     1. Intenta obtener stats agregadas del equipo
     2. Ajusta por empirical Bayes
     3. Busca high leverage situations
-    4. Busca forma reciente
+    4. Busca forma reciente (solo temporada actual)
     """
     
     if season is None:
@@ -251,7 +258,7 @@ def _build_bullpen_metrics(team: str, season: int = None) -> BullpenMetrics:
         hl_ip = 0
         flags["no_high_leverage"] = True
     
-    # 3. Recent form
+    # 3. Recent form (solo temporada actual)
     recent_stats = _get_bullpen_stats_recent(team_id, season)
     
     if recent_stats.get("available"):
